@@ -221,7 +221,7 @@ async def memory_query(m: dict, actor_key: str) -> list[str]:
                 f"[stub] {me['name']} lost the last fight at 12 HP"]
     q = (f"What happened in past fights between {me['name']} ({me['id']}) and "
          f"{opp['name']} ({opp['id']})? What moves does {opp['name']} favor, and who won?")
-    body = {"query": q}
+    body = {"query": q, "k": 25}  # default top-10 drops newer fights once a rivalry has history
     if SURREAL_SCOPES:
         body["lens"] = SURREAL_SCOPES
     try:
@@ -455,6 +455,20 @@ async def match_start(req: StartReq):
     return {"matchId": mid, "state": public_state(m)}
 
 
+class MemoryReq(BaseModel):
+    matchId: str
+
+
+@app.post("/match/memory")
+async def match_memory(req: MemoryReq):
+    """Grudges for both fighters as soon as a match starts (same lines turns return as memoryUsed)."""
+    m = MATCHES.get(req.matchId)
+    if not m:
+        raise HTTPException(404, "unknown matchId")
+    a, b = await asyncio.gather(get_memory(m, "agentA"), get_memory(m, "agentB"))
+    return {"agentA": a, "agentB": b}
+
+
 @app.post("/match/turn")
 async def match_turn(req: TurnReq):
     m = MATCHES.get(req.matchId)
@@ -548,6 +562,16 @@ async def tts(req: TtsReq):
 _STATIC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 if os.path.isdir(_STATIC):
     app.mount("/play", StaticFiles(directory=_STATIC, html=True), name="play")
+
+
+@app.middleware("http")
+async def no_stale_game(request, call_next):
+    """index.html must never be cached, or a redeploy keeps serving players the old game bundle."""
+    resp = await call_next(request)
+    p = request.url.path
+    if p.startswith("/play") and (p.endswith("/") or p.endswith(".html")):
+        resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    return resp
 
 
 if __name__ == "__main__":

@@ -72,3 +72,9 @@ export async function playTurn(matchId) {
   }
   return post("/match/turn", { matchId });
 }
+
+// Grudges for both fighters right after a match starts, before the first turn.
+export async function getMemory(matchId) {
+  if (MOCK_MODE) return { agentA: [], agentB: [] };
+  return post("/match/memory", { matchId });
+}

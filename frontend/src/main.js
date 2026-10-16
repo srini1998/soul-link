@@ -1,6 +1,6 @@
 import "./style.css";
 import { CHARACTERS, getCharacter } from "./characters.js";
-import { startMatch, playTurn } from "./api.js";
+import { startMatch, playTurn, getMemory } from "./api.js";
 import { speak, announce } from "./voice.js";
 import { startMusic, stopMusic, isMusicOn } from "./music.js";
 import { CHARACTER_ART } from "./art/index.js";
@@ -156,6 +156,11 @@ function renderSelect() {
       state.lastTurn = null;
       state.wonSpoken = false;
       state.koShown = false;
+      state.preMemory = null; // null = still recalling
+      const mid = res.matchId;
+      getMemory(mid)
+        .then((mem) => { if (state.matchId === mid) { state.preMemory = mem; if (!state.busy) render(); } })
+        .catch(() => { if (state.matchId === mid) { state.preMemory = { agentA: [], agentB: [] }; if (!state.busy) render(); } });
       state.splatter = null;
       state.splatterShown = false;
       state.screen = "battle";
@@ -413,8 +418,16 @@ function renderBattle() {
   const h3 = document.createElement("h3");
   h3.textContent = "GRUDGES";
   memory.appendChild(h3);
-  const facts = state.lastTurn?.memoryUsed || [];
-  if (facts.length === 0) {
+  // Before turn 1, show the grudges fetched at match start; after that, what the acting fighter used.
+  const pre = state.preMemory;
+  const facts = state.lastTurn?.memoryUsed?.length ? state.lastTurn.memoryUsed
+    : (pre ? [...new Set([...(pre.agentA || []), ...(pre.agentB || [])])] : []);
+  if (facts.length === 0 && !state.lastTurn && !pre) {
+    const p = document.createElement("p");
+    p.style.margin = "0";
+    p.textContent = "Recalling past fights...";
+    memory.appendChild(p);
+  } else if (facts.length === 0) {
     const p = document.createElement("p");
     p.style.margin = "0";
     p.textContent = "No prior history between these two — yet.";

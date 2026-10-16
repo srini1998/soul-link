@@ -13,6 +13,9 @@ preflight allows it. This was verified against the live URL. You don't need `cre
 
 **Play the hosted game:** https://8000-6c0b6acf-cf6e-44bf-84e2-425d59658513.daytonaproxy01.net/play/
 
+## POST /match/memory (additive)
+`{"matchId": "uuid"}` → `{"agentA": ["..."], "agentB": ["..."]}`: each fighter's grudges (the 3 newest one-line memories for this exact pair), available right after /match/start. The frontend uses it to show the GRUDGES panel before turn 1. Takes about 2-4 s.
+
 ## POST /tts (hosted game only)
 `{"text": "...", "voiceId": "<one of the 7 Soul Link voices>", "seed": 123}` → `audio/mpeg`.
 This is a server-side ElevenLabs proxy, so the API key never reaches the browser. It only accepts the game's 7 voices and text up to 220 chars.
