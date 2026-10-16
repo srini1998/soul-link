@@ -18,7 +18,7 @@ from pydantic import BaseModel
 
 try:
     from dotenv import load_dotenv
-    load_dotenv()
+    load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 except ImportError:
     pass
 
@@ -40,7 +40,11 @@ SOULS = {
 # ---------- config ----------
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 LLM_MODEL = os.getenv("LLM_MODEL")  # optional override
+# Bedrock wins if AWS creds are present (AWS lab accounts), then Anthropic API, then OpenAI, else stub
+LLM_BACKEND = ("bedrock" if os.getenv("AWS_ACCESS_KEY_ID") else "anthropic" if ANTHROPIC_API_KEY
+               else "openai" if OPENAI_API_KEY else "stub")
 
 SURREAL_HOST = os.getenv("SURREAL_MEMORY_HOST", "").rstrip("/")
 SURREAL_CONTEXT = os.getenv("SURREAL_CONTEXT_ID", "")
@@ -55,10 +59,10 @@ if os.getenv("ARIZE_API_KEY") and os.getenv("ARIZE_SPACE_ID"):
         from arize.otel import register
         tp = register(space_id=os.environ["ARIZE_SPACE_ID"], api_key=os.environ["ARIZE_API_KEY"],
                       project_name=os.getenv("ARIZE_PROJECT", "soul-link-grudge-protocol"))
-        if ANTHROPIC_API_KEY:
+        if LLM_BACKEND in ("bedrock", "anthropic"):
             from openinference.instrumentation.anthropic import AnthropicInstrumentor
             AnthropicInstrumentor().instrument(tracer_provider=tp)
-        elif OPENAI_API_KEY:
+        elif LLM_BACKEND == "openai":
             from openinference.instrumentation.openai import OpenAIInstrumentor
             OpenAIInstrumentor().instrument(tracer_provider=tp)
         print("[arize] tracing on")
@@ -205,19 +209,29 @@ def build_prompt(m: dict, actor_key: str, memory: list[str]) -> tuple[str, str]:
 
 
 def llm_decide_sync(system: str, user: str) -> dict:
-    if ANTHROPIC_API_KEY:
+    if LLM_BACKEND in ("bedrock", "anthropic"):
         import anthropic
-        client = anthropic.Anthropic()
+        if LLM_BACKEND == "bedrock":
+            client = anthropic.AnthropicBedrockMantle(
+                aws_access_key=os.getenv("AWS_ACCESS_KEY_ID"), aws_secret_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+                aws_session_token=os.getenv("AWS_SESSION_TOKEN") or None, aws_region=AWS_REGION)
+            model = LLM_MODEL or "anthropic.claude-opus-5-5"
+        else:
+            client = anthropic.Anthropic()
+            model = LLM_MODEL or "claude-opus-5-5"
         resp = client.messages.create(
-            model=LLM_MODEL or "claude-haiku-5-5",
-            max_tokens=200,
-            system=system,
+            model=model,
+            max_tokens=4000,
+            output_config={"effort": "low"},  # one quick decision per turn; keeps latency down
+            system=system + " Always respond by calling the choose_move tool exactly once.",
             messages=[{"role": "user", "content": user}],
             tools=[{"name": "choose_move", "description": "Submit your move for this turn.",
-                    "input_schema": DECISION_SCHEMA}],
-            tool_choice={"type": "tool", "name": "choose_move"},
+                    "input_schema": DECISION_SCHEMA, "strict": True}],
+            tool_choice={"type": "auto"},  # forced tool_choice 400s on current models; strict keeps args valid
         )
-        block = next(b for b in resp.content if b.type == "tool_use")
+        block = next((b for b in resp.content if b.type == "tool_use"), None)
+        if block is None:
+            raise ValueError(f"no tool call (stop_reason={resp.stop_reason})")
         return dict(block.input)
     from openai import OpenAI
     client = OpenAI()
@@ -232,7 +246,7 @@ def llm_decide_sync(system: str, user: str) -> dict:
 
 
 async def decide(m: dict, actor_key: str, memory: list[str]) -> tuple[str, str]:
-    if not (ANTHROPIC_API_KEY or OPENAI_API_KEY):
+    if LLM_BACKEND == "stub":
         move = STUB_CYCLE[m["turn"] // 2 % len(STUB_CYCLE)]
         return move, STUB_TAUNTS[move]
     system, user = build_prompt(m, actor_key, memory)
@@ -273,7 +287,7 @@ def resolve(m: dict, actor_key: str, move: str) -> tuple[str, int]:
 # ---------- endpoints ----------
 @app.get("/")
 def health():
-    return {"ok": True, "llm": "anthropic" if ANTHROPIC_API_KEY else "openai" if OPENAI_API_KEY else "stub",
+    return {"ok": True, "llm": LLM_BACKEND,
             "memory": "surreal" if SURREAL_ON else "stub", "matches": len(MATCHES)}
 
 
