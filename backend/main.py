@@ -216,10 +216,10 @@ def llm_decide_sync(system: str, user: str) -> dict:
             client = anthropic.AnthropicBedrock(
                 aws_access_key=os.getenv("AWS_ACCESS_KEY_ID"), aws_secret_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
                 aws_session_token=os.getenv("AWS_SESSION_TOKEN") or None, aws_region=AWS_REGION)
-            model = LLM_MODEL or "us.anthropic.claude-opus-5-5"
+            model = LLM_MODEL or "us.anthropic.claude-sonnet-5-5"
         else:
             client = anthropic.Anthropic()
-            model = LLM_MODEL or "claude-opus-5-5"
+            model = LLM_MODEL or "claude-sonnet-5-5"
         resp = client.messages.create(
             model=model,
             max_tokens=4000,
