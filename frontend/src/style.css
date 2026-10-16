@@ -269,6 +269,7 @@ button.ghost {
   overflow: visible;
 }
 .fighter .portrait svg { max-width: 100%; max-height: 100%; width: auto; height: auto; }
+.fighter-agentB .portrait svg { transform: scaleX(-1); } /* face agentA — art is now text-free */
 
 /* ---------- move choreography: each move type gets its own feel ---------- */
 .fighter.move-light_attack { animation: jab 0.35s ease; }
