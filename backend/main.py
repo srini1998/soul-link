@@ -164,7 +164,11 @@ async def memory_query(m: dict, actor_key: str) -> list[str]:
                 facts = _flatten_memory(r.json())
             except ValueError:
                 facts = [r.text]
-            return [f for f in facts if f][:6]
+            # SURREAL_SCOPES is unset, so the query isn't narrowed server-side (no `lens`) -
+            # without this, retrieval pulls from every matchup in the store, not just this one,
+            # and a fighter ends up citing an opponent they aren't even fighting this match.
+            relevant = [f for f in facts if f and me["name"] in f and opp["name"] in f]
+            return relevant[:6]
     except Exception as e:
         print(f"[surreal] query failed: {e!r}")
         return []
