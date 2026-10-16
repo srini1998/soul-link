@@ -1,54 +1,68 @@
-# Soul Link
+# Soul Link: Grudge Protocol
 
-Anime 1v1 fighting game (Street Fighter-ish) where both characters are autonomous LLM agents.
-Players coach rather than directly input moves — each agent decides its own combos in real time
-based on its personality, live opponent read, and persistent cross-match memory.
+**Two autonomous Claude agents fight turn by turn, and they remember every past fight with each other.**
 
-Built for Daytona HackSprint w/ Arize AI — NYC, October 2026.
+Nobody controls the fighters. Each one picks its own move and trash talk every turn from its personality, the live fight state, and what it remembers about this specific opponent (stored in SurrealDB). Lose to someone once and the grudge carries into the next match, changing both its moves and its taunts. Taunts are voiced aloud with ElevenLabs.
+
+Built at Daytona HackSprint NYC (with Arize AI, AWS, ElevenLabs, SurrealDB).
+
+**Live backend:** https://8000-6c0b6acf-cf6e-44bf-84e2-425d59658513.daytonaproxy01.net  (interactive API: [/docs](https://8000-6c0b6acf-cf6e-44bf-84e2-425d59658513.daytonaproxy01.net/docs))
+
+## How a turn works
+
+1. **Match start:** memories are fetched from SurrealDB for each fighter, filtered to facts naming this exact pair.
+2. **Prompt:** Claude on AWS Bedrock receives the fighter's personality, both HPs, the opponent's last hit, the retrieved memories, and the fighter's own earlier taunts (so it doesn't repeat itself).
+3. **Constrained output:** a strict tool schema allows only 5 moves (`LIGHT_ATTACK`, `HEAVY_ATTACK`, `BLOCK`, `SPECIAL`, `DODGE`) plus a taunt of at most 12 words.
+4. **Resolve:** the backend applies damage and returns the new state.
+5. **Voice:** the browser sends the taunt to ElevenLabs, using that fighter's own voice.
+6. **Match end:** a summary of the fight is written back to SurrealDB for next time.
+
+## Sponsor tools
+
+| Tool | What it does here |
+|---|---|
+| **Daytona** | Hosts the whole backend in one sandbox with a public preview URL (`backend/deploy_daytona.py`). |
+| **AWS Bedrock** | Claude Sonnet 5.5 picks every move and writes every taunt. |
+| **SurrealDB Agent Memory** | Cross-match grudges. Facts are extracted into entities and actions, then queried per matchup. |
+| **Arize AX** | One `AGENT` span per turn with inputs and outputs, the LLM span nested inside, and each match as a session. |
+| **ElevenLabs** | Per-fighter voices for taunts, called from the browser. |
+
+## Safeguards
+
+- Moves are limited to 5 by a strict schema.
+- A fallback move and taunt is used if the LLM or memory call fails or times out.
+- API keys stay server-side, except the ElevenLabs key, which the browser uses for the local demo.
+- Matches are capped at 40 turns.
+- Taunts must stay PG-13.
+- The model is told not to invent stats.
+- Every decision is traced in Arize.
+
+## Roster
+
+| id | Name | Archetype |
+|---|---|---|
+| soul_a | Kaito Blaze | Hot-headed fire swordsman |
+| soul_b | Rei Shadowfang | Cold, calculating shadow assassin |
+| soul_c | Rin Tempest | Playful speed-type ninja |
+| soul_d | Dorn Ironhide | Silent, towering brawler |
+| soul_e | Suzu Nightfox | Mischievous kitsune trickster |
+| soul_f | Varek Stonewill | Composed, disciplined mentor |
+
+## Running locally
+
+```bash
+# backend
+cd backend && cp .env.example .env   # fill in keys, or leave blank to run in stub mode
+pip install -r requirements.txt && python main.py   # :8000
+
+# frontend (separate terminal)
+cd frontend && cp .env.example .env   # set VITE_BACKEND_URL + VITE_ELEVENLABS_API_KEY
+npm install && npm run dev   # :5173
+```
+
+API shape is in [CONTRACT.md](CONTRACT.md): `POST /match/start` and `POST /match/turn`. More context is in [HANDOFF.md](HANDOFF.md).
 
 ## Team
 
-- **Frontend (fight stage, UI, HUD, voice playback):** srini1998 (this repo's owner)
-- **Backend (agents, memory, sandboxing, tracing):** [mkchand02](https://github.com/mkchand02)
-
-## Architecture
-
-```
-Browser (any device)
-   |  WebSocket / HTTP
-   v
-Backend (hosted inside a Daytona sandbox)
-   |-- Reflex tier: small local model (Ollama) -> fast per-tick move selection (LIGHT/HEAVY/BLOCK/SPECIAL/DODGE)
-   |-- Strategy tier: cloud LLM -> personality, taunts, scouting decisions, memory writes (called less often)
-   |-- SurrealDB Agent Memory -> each fighter's history/grudges/nemesis bonuses, queried before + written after fights
-   |-- Arize AX -> traces every agent decision (reasoning, latency, token cost); exposed to frontend as a live "Focus Meter"
-   |-- Anchor Browser -> lets an agent scout its opponent (cloud browser) between rounds
-```
-
-Frontend renders the fight (character art + hit effects + HUD) and plays each taunt line via
-ElevenLabs. It never talks to Daytona, SurrealDB, Arize, or Anchor Browser directly — all of that
-is backend-only, both for simplicity and because those API keys must never be exposed to a browser.
-
-## Sponsor tools in play
-
-| Tool | Owner | What it's used for |
-|---|---|---|
-| Daytona | backend | hosts the agent backend (and, if time allows, per-match sandboxes) |
-| Arize AX | backend | traces/evals every agent decision |
-| SurrealDB Agent Memory | backend | typed, time-aware memory of past matches per agent |
-| Anchor Browser | backend | agent scouts its opponent via a cloud browser between rounds |
-| ElevenLabs | frontend | voices each agent's taunts/special-move callouts |
-| AWS | backend/infra | hosting |
-
-## Repo layout
-
-```
-frontend/   fight stage UI, HUD, ElevenLabs playback
-backend/    agents, Daytona hosting, SurrealDB, Arize, Anchor Browser
-```
-
-## Env vars
-
-Secrets never go in frontend code that ships to the browser — only `ELEVENLABS_API_KEY` (and the
-backend's base URL) belong on the frontend side. Everything else is backend-only. See
-`frontend/.env.example` and `backend/.env.example`.
+- **Frontend:** [srini1998](https://github.com/srini1998)
+- **Backend:** [mkchand02](https://github.com/mkchand02)
