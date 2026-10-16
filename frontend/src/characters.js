@@ -6,7 +6,7 @@ export const CHARACTERS = [
     name: "Kaito Blaze",
     tagline: "Hot-headed fire swordsman",
     colors: { primary: "#FF6B35", dark: "#3A0F0A", accent: "#C7441B" },
-    voiceId: "", // fill in from ElevenLabs Voice Library — pick something brash/young-male
+    voiceId: "SOYHLrjzK2X1ezoPC6cr", // ElevenLabs: Harry - Fierce Warrior
     element: "fire",
     stage: "desert",
     lines: {
@@ -20,7 +20,7 @@ export const CHARACTERS = [
     name: "Rei Shadowfang",
     tagline: "Cold, calculating shadow assassin",
     colors: { primary: "#5B8DB8", dark: "#13293D", accent: "#5DCAA5" },
-    voiceId: "", // low/cold, controlled delivery
+    voiceId: "XrExE9yKIg1WjnnlVkGX", // ElevenLabs: Matilda - Knowledgable, Professional
     element: "shadow",
     stage: "blizzard",
     lines: {
@@ -34,7 +34,7 @@ export const CHARACTERS = [
     name: "Rin Tempest",
     tagline: "Playful speed-type ninja",
     colors: { primary: "#7FDBFF", dark: "#1B4F5C", accent: "#C7F3FF" },
-    voiceId: "", // light, quick, teasing
+    voiceId: "FGY2WhTYpPnrIDTdsKH5", // ElevenLabs: Laura - Enthusiast, Quirky Attitude
     element: "wind",
     stage: "tropical",
     lines: {
@@ -48,7 +48,7 @@ export const CHARACTERS = [
     name: "Dorn Ironhide",
     tagline: "Silent, towering brawler",
     colors: { primary: "#8A6F52", dark: "#2B2118", accent: "#C9A36B" },
-    voiceId: "", // deep, sparse, heavy
+    voiceId: "nPczCjzI2devNBz1zQrb", // ElevenLabs: Brian - Deep, Resonant and Comforting
     element: "earth",
     stage: "village",
     lines: {
@@ -62,7 +62,7 @@ export const CHARACTERS = [
     name: "Suzu Nightfox",
     tagline: "Mischievous kitsune trickster",
     colors: { primary: "#B968C7", dark: "#3D1F45", accent: "#E6A8F0" },
-    voiceId: "", // playful, mischievous, higher pitch
+    voiceId: "N2lVS1w4EtoT3dr4eOWO", // ElevenLabs: Callum - Husky Trickster
     element: "trickster",
     stage: "shrine",
     lines: {
@@ -76,7 +76,7 @@ export const CHARACTERS = [
     name: "Varek Stonewill",
     tagline: "Composed, disciplined mentor",
     colors: { primary: "#7A8B6F", dark: "#2E3A28", accent: "#B7C9A8" },
-    voiceId: "", // calm, measured, older/mentor tone
+    voiceId: "pqHfZKP75CvOlQylNhV4", // ElevenLabs: Bill - Wise, Mature, Balanced
     element: "discipline",
     stage: "dojo",
     lines: {
