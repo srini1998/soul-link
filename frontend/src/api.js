@@ -14,13 +14,11 @@ const STUB_TAUNTS = {
 const mockMatches = new Map();
 
 async function post(path, body) {
-  // credentials: "include" matters specifically for the Daytona preview URL: it shows a
-  // one-time browser warning interstitial (HTML, not JSON) until its bypass cookie is sent
-  // back, and fetch omits cookies on cross-origin requests unless told to include them.
+  // Required per CONTRACT.md: without this header, Daytona's preview proxy returns an HTML
+  // warning page to browsers (instead of JSON) until someone has clicked through it manually.
   const res = await fetch(`${BASE_URL}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
+    headers: { "Content-Type": "application/json", "X-Daytona-Skip-Preview-Warning": "true" },
     body: JSON.stringify(body),
   });
   const contentType = res.headers.get("content-type") || "";

@@ -110,12 +110,24 @@ function fighterBlock(key) {
   if (state.lastTurn && state.lastTurn.actor !== key && state.lastTurn.damageDealt > 0) {
     div.classList.add("hit");
   }
+  if (state.lastTurn && state.lastTurn.actor === key) {
+    div.classList.add("attacking");
+    div.style.setProperty("--lunge", key === "agentA" ? "14px" : "-14px");
+  }
   const swatch = document.createElement("div");
   swatch.className = "swatch";
   swatch.style.background = `linear-gradient(135deg, ${c.colors.primary}, ${c.colors.dark})`;
   const name = document.createElement("div");
   name.className = "name";
   name.textContent = agent.name;
+  const hpRow = document.createElement("div");
+  hpRow.className = "hpbar-row";
+  const hpLabel = document.createElement("span");
+  hpLabel.textContent = "HP";
+  const hpValue = document.createElement("span");
+  hpValue.className = "hp-value";
+  hpValue.textContent = `${Math.max(0, agent.hp)}/${agent.maxHp}`;
+  hpRow.append(hpLabel, hpValue);
   const hpbar = document.createElement("div");
   hpbar.className = "hpbar";
   const fill = document.createElement("div");
@@ -123,7 +135,7 @@ function fighterBlock(key) {
   fill.className = "hpbar-fill" + (pct < 30 ? " low" : "");
   fill.style.width = `${pct}%`;
   hpbar.appendChild(fill);
-  div.append(swatch, name, hpbar);
+  div.append(swatch, name, hpRow, hpbar);
   return div;
 }
 
@@ -145,11 +157,15 @@ function renderBattle() {
 
   const arena = document.createElement("div");
   arena.className = "arena";
-  arena.append(fighterBlock("agentA"), fighterBlock("agentB"));
+  const vs = document.createElement("div");
+  vs.className = "vs";
+  vs.textContent = "VS";
+  arena.append(fighterBlock("agentA"), vs, fighterBlock("agentB"));
   wrap.appendChild(arena);
 
   const taunt = document.createElement("div");
   taunt.className = "taunt";
+  if (state.lastTurn) taunt.classList.add(`impact-${state.lastTurn.move.toLowerCase()}`);
   taunt.style.setProperty(
     "--accent",
     state.lastTurn ? getCharacter(state.match[state.lastTurn.actor].id).colors.primary : "#ff6b35"
