@@ -64,7 +64,7 @@ def main():
     sid = f"server-{int(time.time())}"
     sb.process.create_session(sid)
     sb.process.execute_session_command(sid, SessionExecuteRequest(
-        command=f"cd {app_dir} && DISABLE_CORS=1 PORT={PORT} python main.py > server.log 2>&1", run_async=True))
+        command=f"cd {app_dir} && PYTHONUNBUFFERED=1 DISABLE_CORS=1 PORT={PORT} python main.py > server.log 2>&1", run_async=True))
 
     link = sb.get_preview_link(PORT)
     url = link.url.rstrip("/")
