@@ -18,7 +18,8 @@ from pydantic import BaseModel
 
 try:
     from dotenv import load_dotenv
-    load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
+    # override=True: the sandbox was created with placeholder env vars; .env must win
+    load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"), override=True)
 except ImportError:
     pass
 
@@ -69,7 +70,18 @@ if os.getenv("ARIZE_API_KEY") and os.getenv("ARIZE_SPACE_ID"):
     except Exception as e:  # never let tracing kill the server
         print(f"[arize] tracing disabled: {e}")
 
-app = FastAPI(title="Soul Link: Grudge Protocol")
+try:
+    from opentelemetry import trace as _otel
+    tracer = _otel.get_tracer("soul-link")  # no-op unless Arize registered a provider above
+except ImportError:
+    tracer = None
+
+try:
+    # FastAPI >=0.14x traces every request natively; in Arize those show as untyped "POST /match/turn" roots
+    # wrapping our AGENT spans. Turn it off so each trace starts at the meaningful "turn: <fighter>" span.
+    app = FastAPI(title="Soul Link: Grudge Protocol", telemetry={"tracing": False})
+except TypeError:  # older FastAPI without native telemetry
+    app = FastAPI(title="Soul Link: Grudge Protocol")
 # Daytona's preview proxy adds its own CORS headers; a second set makes browsers reject responses
 if not os.getenv("DISABLE_CORS"):
     app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -209,10 +221,11 @@ def llm_decide_sync(system: str, user: str) -> dict:
             # classic bedrock-runtime client: the Mantle endpoint 404s on this lab account
             client = anthropic.AnthropicBedrock(
                 aws_access_key=os.getenv("AWS_ACCESS_KEY_ID"), aws_secret_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-                aws_session_token=os.getenv("AWS_SESSION_TOKEN") or None, aws_region=AWS_REGION)
+                aws_session_token=os.getenv("AWS_SESSION_TOKEN") or None, aws_region=AWS_REGION,
+                open_telemetry=False)  # SDK's own HTTP spans show up in Arize as untyped "POST" noise
             model = LLM_MODEL or "us.anthropic.claude-sonnet-5-5"
         else:
-            client = anthropic.Anthropic()
+            client = anthropic.Anthropic(open_telemetry=False)
             model = LLM_MODEL or "claude-sonnet-5-5"
         resp = client.messages.create(
             model=model,
@@ -316,8 +329,22 @@ async def match_turn(req: TurnReq):
                 "state": public_state(m), "memoryUsed": [], "done": True, "winner": m["winner"]}
 
     memory = await get_memory(m, actor)
-    move, taunt = await decide(m, actor, memory)
-    move, dmg = resolve(m, actor, move)
+    if tracer:
+        # one AGENT span per turn: what the fighter saw (input) -> what it did (output); LLM span nests inside
+        with tracer.start_as_current_span(f"turn: {m[actor]['name']}") as span:
+            span.set_attribute("openinference.span.kind", "AGENT")
+            span.set_attribute("session.id", m["id"])
+            span.set_attribute("input.value", json.dumps({
+                "fighter": m[actor]["name"], "turn": m["turn"] + 1,
+                "myHp": m[actor]["hp"], "opponentHp": m[other(actor)]["hp"], "memoryUsed": memory}))
+            span.set_attribute("input.mime_type", "application/json")
+            move, taunt = await decide(m, actor, memory)
+            move, dmg = resolve(m, actor, move)
+            span.set_attribute("output.value", json.dumps({"move": move, "taunt": taunt, "damageDealt": dmg}))
+            span.set_attribute("output.mime_type", "application/json")
+    else:
+        move, taunt = await decide(m, actor, memory)
+        move, dmg = resolve(m, actor, move)
 
     defender = m[other(actor)]
     defender["hp"] = max(0, defender["hp"] - dmg)
