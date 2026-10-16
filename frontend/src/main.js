@@ -7,7 +7,7 @@ import { CHARACTER_ART } from "./art/index.js";
 // Renders a character's portrait SVG into `el`, cropped to fill it (preserveAspectRatio set
 // programmatically since the source SVGs only declare width="100%"). Falls back to the old
 // color-swatch gradient if art for an id is ever missing.
-function paintPortrait(el, c) {
+function paintPortrait(el, c, fit = "slice") {
   const markup = CHARACTER_ART[c.id];
   if (!markup) {
     el.style.background = `linear-gradient(135deg, ${c.colors.primary}, ${c.colors.dark})`;
@@ -17,7 +17,7 @@ function paintPortrait(el, c) {
   const svg = el.querySelector("svg");
   svg.setAttribute("width", "100%");
   svg.setAttribute("height", "100%");
-  svg.setAttribute("preserveAspectRatio", "xMidYMid slice");
+  svg.setAttribute("preserveAspectRatio", `xMidYMax ${fit}`);
   svg.style.display = "block";
 }
 
@@ -99,11 +99,13 @@ function renderSelect() {
     card.className = "card";
     card.style.setProperty("--accent", c.colors.primary);
     if (state.pickA === c.id || state.pickB === c.id) card.classList.add("selected");
+    const slot = state.pickA === c.id ? "P1" : state.pickB === c.id ? "P2" : null;
+    if (slot) card.dataset.slot = slot;
     const swatch = document.createElement("div");
     swatch.className = "swatch";
     const portrait = document.createElement("div");
     portrait.className = "portrait";
-    paintPortrait(portrait, c);
+    paintPortrait(portrait, c, "meet"); // full body on the select screen, not a cropped torso
     swatch.appendChild(portrait);
     const name = document.createElement("div");
     name.className = "name";
