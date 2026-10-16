@@ -54,6 +54,14 @@ def main():
     sb.process.exec(f"mkdir -p {app_dir}")
     for name in ("main.py", "requirements.txt"):
         sb.fs.upload_file((HERE / name).read_bytes(), f"{app_dir}/{name}")
+    # hosted game: frontend/dist-hosted (build with `npm --prefix frontend run build:hosted`) -> served at /play
+    dist = HERE.parent / "frontend" / "dist-hosted"
+    if dist.is_dir():
+        sb.process.exec(f"rm -rf {app_dir}/static && mkdir -p {app_dir}/static/assets")
+        for f in dist.rglob("*"):
+            if f.is_file():
+                sb.fs.upload_file(f.read_bytes(), f"{app_dir}/static/{f.relative_to(dist).as_posix()}")
+        print(f"uploaded game from {dist}")
     # .env inside the sandbox too, so reuse/restart picks up new keys
     sb.fs.upload_file("\n".join(f"{k}={v}" for k, v in env.items()).encode(), f"{app_dir}/.env")
 

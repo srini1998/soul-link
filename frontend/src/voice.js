@@ -2,6 +2,8 @@
 // POST https://api.elevenlabs.io/v1/text-to-speech/{voice_id}, header xi-api-key,
 // body {text, model_id, voice_settings}, 200 response is the audio file as bytes.
 const API_KEY = import.meta.env.VITE_ELEVENLABS_API_KEY;
+// Hosted build ships without a key: voices go through the backend's /tts proxy (key stays server-side).
+const TTS_PROXY = `${(import.meta.env.VITE_BACKEND_URL || "http://localhost:8000").replace(/\/$/, "")}/tts`;
 
 // One model for every line so a character never changes timbre mid-match (no fallback model swap).
 const MODEL = "eleven_flash_v2_5";
@@ -30,11 +32,17 @@ async function fetchAudio(text, voiceId) {
   for (const wait of [0, 700, 1600]) {
     if (wait) await new Promise((r) => setTimeout(r, wait));
     try {
-      const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-        method: "POST",
-        headers: { "xi-api-key": API_KEY, "Content-Type": "application/json" },
-        body: JSON.stringify({ text, model_id: MODEL, voice_settings: VOICE_SETTINGS, seed: seedFor(voiceId) }),
-      });
+      const res = API_KEY
+        ? await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+            method: "POST",
+            headers: { "xi-api-key": API_KEY, "Content-Type": "application/json" },
+            body: JSON.stringify({ text, model_id: MODEL, voice_settings: VOICE_SETTINGS, seed: seedFor(voiceId) }),
+          })
+        : await fetch(TTS_PROXY, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-Daytona-Skip-Preview-Warning": "true" },
+            body: JSON.stringify({ text, voiceId, seed: seedFor(voiceId) }),
+          });
       if (res.ok) return res.blob();
       console.warn(`[voice] ElevenLabs ${res.status}, retrying`);
       if (res.status !== 429 && res.status < 500) return null;
@@ -70,8 +78,8 @@ function broadcastChain(audio) {
 }
 
 async function playLine(text, voiceId, broadcast = false, cacheable = false) {
-  if (!API_KEY || !voiceId || !text) {
-    console.warn("[voice] skipped — missing API key, voiceId or text");
+  if (!voiceId || !text) {
+    console.warn("[voice] skipped — missing voiceId or text");
     return;
   }
   const key = `${voiceId}|${text}`;

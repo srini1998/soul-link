@@ -14,7 +14,8 @@ import uuid
 from collections import Counter
 
 import httpx
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -498,6 +499,55 @@ async def match_turn(req: TurnReq):
 
     return {"actor": actor, "move": move, "taunt": taunt, "damageDealt": dmg,
             "state": public_state(m), "memoryUsed": memory, "done": m["done"], "winner": m["winner"]}
+
+
+# ---------- ElevenLabs TTS proxy (keeps the API key server-side for the hosted game) ----------
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
+# Only our 7 designed voices, and only short lines: the proxy can't be used as free general-purpose TTS.
+TTS_VOICES = {
+    "5akCgQNpbNhGou9n9Tjb",  # Kaito
+    "unz9GZ9uU4Pf6SA9zI0h",  # Rei
+    "r44MxNe5ogbCxpRHGiSg",  # Rin
+    "OLWpgWzSnDVueuYWzHBg",  # Dorn
+    "x8Dh8b7GBF5F7E3xz0Dy",  # Suzu
+    "PNT1xDzDvvCmsSesAyOE",  # Varek
+    "bpAREj3auhoUmnRTK6ju",  # announcer
+}
+
+
+class TtsReq(BaseModel):
+    text: str
+    voiceId: str
+    seed: int | None = None
+
+
+@app.post("/tts")
+async def tts(req: TtsReq):
+    if not ELEVENLABS_API_KEY:
+        raise HTTPException(503, "tts not configured")
+    if req.voiceId not in TTS_VOICES or not req.text.strip() or len(req.text) > 220:
+        raise HTTPException(400, "voice or text not allowed")
+    body = {"text": req.text, "model_id": "eleven_flash_v2_5",
+            "voice_settings": {"stability": 0.55, "similarity_boost": 0.9, "style": 0.45, "use_speaker_boost": True}}
+    if req.seed is not None:
+        body["seed"] = req.seed
+    async with httpx.AsyncClient(timeout=20) as c:
+        for wait in (0, 0.7, 1.6):  # retry rate limits on the same model
+            if wait:
+                await asyncio.sleep(wait)
+            r = await c.post(f"https://api.elevenlabs.io/v1/text-to-speech/{req.voiceId}",
+                             headers={"xi-api-key": ELEVENLABS_API_KEY}, json=body)
+            if r.status_code == 200:
+                return Response(content=r.content, media_type="audio/mpeg")
+            if r.status_code != 429 and r.status_code < 500:
+                break
+    raise HTTPException(502, f"tts upstream {r.status_code}")
+
+
+# ---------- hosted game: the built frontend, served at /play ----------
+_STATIC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+if os.path.isdir(_STATIC):
+    app.mount("/play", StaticFiles(directory=_STATIC, html=True), name="play")
 
 
 if __name__ == "__main__":

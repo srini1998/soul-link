@@ -11,6 +11,12 @@ Without it, Daytona's preview proxy returns an HTML warning page (`text/html`) t
 until someone has clicked through it in that browser. With the header you get JSON straight away, and the CORS
 preflight allows it. This was verified against the live URL. You don't need `credentials: "include"` with it.
 
+**Play the hosted game:** https://8000-6c0b6acf-cf6e-44bf-84e2-425d59658513.daytonaproxy01.net/play/
+
+## POST /tts (hosted game only)
+`{"text": "...", "voiceId": "<one of the 7 Soul Link voices>", "seed": 123}` → `audio/mpeg`.
+This is a server-side ElevenLabs proxy, so the API key never reaches the browser. It only accepts the game's 7 voices and text up to 220 chars.
+
 ## GET /
 Health check. → `{"ok": true, "llm": "stub|anthropic|openai", "memory": "stub|surreal", "matches": 0}`
 
