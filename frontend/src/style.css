@@ -41,15 +41,50 @@ button.ghost {
   padding: 8px 16px; font-size: 13px; cursor: pointer; margin-top: 12px;
 }
 
-.arena {
+/* ---------- top HUD: both HP bars pinned above the arena, classic fighting-game layout ---------- */
+.battle-hud {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  gap: 24px;
+  gap: 16px;
+  margin-bottom: 10px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: #121014;
+  border: 1px solid #262229;
+}
+.hud-side { display: flex; flex-direction: column; gap: 4px; }
+.hud-side.hud-agentB { align-items: flex-end; text-align: right; }
+.hud-name { font-size: 13px; font-weight: 700; letter-spacing: 0.3px; }
+.hud-hp-track {
+  width: 100%; height: 16px; border-radius: 3px;
+  background: #241f1a; border: 1px solid #332c24;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+.hud-hp-fill {
+  height: 100%; background: var(--fill-color, #5dcaa5);
+  transition: width 0.4s ease;
+}
+.hud-hp-fill.low { background: #e24b4a; }
+.hud-side.hud-agentB .hud-hp-fill { margin-left: auto; }
+.hud-hp-value { font-size: 10px; color: #a89c8a; font-variant-numeric: tabular-nums; }
+.hud-vs {
+  font-size: 14px; font-weight: 800; letter-spacing: 1px;
+  color: #eee; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  padding: 0 4px;
+}
+
+.arena {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
   margin-bottom: 20px;
-  padding: 20px;
+  padding: 0 16px;
   border-radius: 14px;
   position: relative;
+  min-height: 260px;
   background: #0b0a0c;
   border: 1px solid #262229;
   box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.5);
@@ -63,15 +98,6 @@ button.ghost {
   background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.4));
   pointer-events: none;
   z-index: 1;
-}
-.vs {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: #eee;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
-  position: relative;
-  z-index: 2;
 }
 
 /* ---------- stage backdrops: layered CSS "scenery", not a flat gradient wash ---------- */
@@ -225,24 +251,24 @@ button.ghost {
   80% { opacity: 0.4; }
 }
 
+/* No card chrome here on purpose — these are standing figures in the stage, not stat
+   panels. Full height within the arena so tall full-body art has real room to show. */
 .fighter {
-  background: rgba(10, 9, 11, 0.55);
-  backdrop-filter: blur(2px);
-  border-radius: 10px;
-  padding: 16px;
   position: relative;
   z-index: 2;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  width: 38%;
+  max-width: 220px;
+  height: 92%;
+  animation: idle-bob 2.4s ease-in-out infinite;
   transition: transform 0.2s ease;
 }
 .fighter.hit { animation: shake calc(0.25s + var(--shake, 6px) * 0.01) ease; }
-.fighter .swatch {
-  width: 100%; height: 100px; margin-bottom: 10px;
-  position: relative; overflow: visible;
-  animation: idle-bob 2.4s ease-in-out infinite;
+.fighter .portrait {
+  width: 100%; height: 100%;
+  display: flex; align-items: flex-end; justify-content: center;
+  overflow: visible;
 }
-.fighter .swatch .portrait { border-radius: 8px; }
-.fighter .name { font-weight: 600; }
+.fighter .portrait svg { max-width: 100%; max-height: 100%; width: auto; height: auto; }
 
 /* ---------- move choreography: each move type gets its own feel ---------- */
 .fighter.move-light_attack { animation: jab 0.35s ease; }
@@ -370,12 +396,6 @@ button.ghost {
   0% { transform: scale(0.3); opacity: 1; }
   100% { transform: scale(2.6); opacity: 0; }
 }
-.hpbar-row { display: flex; justify-content: space-between; align-items: baseline; margin-top: 8px; }
-.hpbar-row .hp-value { font-size: 11px; color: #a89c8a; font-variant-numeric: tabular-nums; }
-.hpbar { height: 10px; border-radius: 5px; background: #2a2a30; overflow: hidden; }
-.hpbar-fill { height: 100%; background: #5dcaa5; transition: width 0.4s ease; }
-.hpbar-fill.low { background: #e24b4a; }
-
 .taunt.impact-heavy_attack, .taunt.impact-special { animation: flash-strong 0.5s ease; }
 .taunt.impact-light_attack { animation: flash-light 0.4s ease; }
 .taunt.impact-block, .taunt.impact-dodge { animation: flash-guard 0.4s ease; }

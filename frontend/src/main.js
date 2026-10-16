@@ -163,11 +163,37 @@ function stageBackground(theme) {
   return stage;
 }
 
+// Top HUD strip: both HP bars side by side above the arena, classic fighting-game layout.
+// agentB's fill is anchored to the right (margin-left: auto) so it depletes "inward" toward
+// the VS badge, mirroring agentA's — the standard two-bars-pointing-at-each-other look.
+function hudSide(key) {
+  const agent = state.match[key];
+  const c = getCharacter(agent.id);
+  const side = document.createElement("div");
+  side.className = `hud-side hud-${key}`;
+  const nameRow = document.createElement("div");
+  nameRow.className = "hud-name";
+  nameRow.textContent = agent.name;
+  const track = document.createElement("div");
+  track.className = "hud-hp-track";
+  const fill = document.createElement("div");
+  const pct = Math.max(0, (agent.hp / agent.maxHp) * 100);
+  fill.className = "hud-hp-fill" + (pct < 30 ? " low" : "");
+  fill.style.width = `${pct}%`;
+  fill.style.setProperty("--fill-color", c.colors.primary);
+  track.appendChild(fill);
+  const value = document.createElement("div");
+  value.className = "hud-hp-value";
+  value.textContent = `${Math.max(0, agent.hp)}/${agent.maxHp}`;
+  side.append(nameRow, track, value);
+  return side;
+}
+
 function fighterBlock(key) {
   const agent = state.match[key];
   const c = getCharacter(agent.id);
   const div = document.createElement("div");
-  div.className = "fighter";
+  div.className = `fighter fighter-${key}`;
   if (state.lastTurn && state.lastTurn.actor !== key && state.lastTurn.damageDealt > 0) {
     div.classList.add("hit");
     div.style.setProperty("--shake", state.lastTurn.move === "HEAVY_ATTACK" ? "10px" : "6px");
@@ -175,7 +201,7 @@ function fighterBlock(key) {
   let burst = null;
   if (state.lastTurn && state.lastTurn.actor === key) {
     // one class per move type so each gets its own choreography (see style.css) — applied to
-    // the whole fighter block so it works on whatever art is in .swatch, placeholder or real.
+    // the whole fighter block so it works on whatever art is in .portrait, old or full-body.
     const move = state.lastTurn.move;
     div.classList.add(`move-${move.toLowerCase()}`);
     div.style.setProperty("--dir", key === "agentA" ? "1" : "-1");
@@ -188,32 +214,11 @@ function fighterBlock(key) {
       burst.style.setProperty("--elem-accent", c.colors.accent);
     }
   }
-  const swatch = document.createElement("div");
-  swatch.className = "swatch";
   const portrait = document.createElement("div");
   portrait.className = "portrait";
   paintPortrait(portrait, c);
-  swatch.appendChild(portrait);
-  if (burst) swatch.appendChild(burst);
-  const name = document.createElement("div");
-  name.className = "name";
-  name.textContent = agent.name;
-  const hpRow = document.createElement("div");
-  hpRow.className = "hpbar-row";
-  const hpLabel = document.createElement("span");
-  hpLabel.textContent = "HP";
-  const hpValue = document.createElement("span");
-  hpValue.className = "hp-value";
-  hpValue.textContent = `${Math.max(0, agent.hp)}/${agent.maxHp}`;
-  hpRow.append(hpLabel, hpValue);
-  const hpbar = document.createElement("div");
-  hpbar.className = "hpbar";
-  const fill = document.createElement("div");
-  const pct = Math.max(0, (agent.hp / agent.maxHp) * 100);
-  fill.className = "hpbar-fill" + (pct < 30 ? " low" : "");
-  fill.style.width = `${pct}%`;
-  hpbar.appendChild(fill);
-  div.append(swatch, name, hpRow, hpbar);
+  div.appendChild(portrait);
+  if (burst) div.appendChild(burst);
   return div;
 }
 
@@ -233,14 +238,21 @@ function renderBattle() {
     : "";
   wrap.appendChild(status);
 
+  // Classic fighting-game HUD: both HP bars pinned at the top, pointing at each other,
+  // with a VS badge between them — not tucked under each character's own card.
+  const hud = document.createElement("div");
+  hud.className = "battle-hud";
+  const vsBadge = document.createElement("div");
+  vsBadge.className = "hud-vs";
+  vsBadge.textContent = "VS";
+  hud.append(hudSide("agentA"), vsBadge, hudSide("agentB"));
+  wrap.appendChild(hud);
+
   const arena = document.createElement("div");
   arena.className = "arena";
   // Stage follows agentA, same convention classic fighters use for whoever's "home" slot.
   arena.appendChild(stageBackground(getCharacter(state.match.agentA.id).stage));
-  const vs = document.createElement("div");
-  vs.className = "vs";
-  vs.textContent = "VS";
-  arena.append(fighterBlock("agentA"), vs, fighterBlock("agentB"));
+  arena.append(fighterBlock("agentA"), fighterBlock("agentB"));
   wrap.appendChild(arena);
 
   const taunt = document.createElement("div");
