@@ -1,6 +1,6 @@
-<svg width="100%" viewBox="0 0 680 480" role="img"><title>Retro pixel-sprite portrait for Kaito Blaze</title><desc>Chunky pixel-art portrait of a hot-headed fire swordsman, flame-orange headband and spiky hair, dark jacket, with a dark pixel outline on every block and a one-piece sword.</desc>
-<rect x="20" y="20" width="310" height="440" rx="4" fill="#1A0C08"/>
-<g transform="translate(60,40)" stroke="#140905" stroke-width="1.5">
+<svg width="100%" viewBox="0 0 265 490" role="img"><title>Full-body retro pixel-sprite for Kaito Blaze</title><desc>Chunky pixel-art full-body standing sprite of a hot-headed fire swordsman, head to toe: flame-spiked hair, headband, dark jacket, trousers with orange knee stripes, boots, and a one-piece sword.</desc>
+<rect x="0" y="0" width="265" height="490" rx="8" fill="#1A0C08"/>
+<g transform="translate(15,40)" stroke="#140905" stroke-width="1.5">
 <rect x="20" y="0" width="10" height="40" fill="#8A2E10"/>
 <rect x="30" y="10" width="10" height="40" fill="#8A2E10"/>
 <rect x="150" y="0" width="10" height="40" fill="#8A2E10"/>
@@ -32,6 +32,17 @@
 <rect x="0" y="128" width="180" height="92" fill="#3A0F0A"/>
 <rect x="0" y="128" width="180" height="14" fill="#5A1F15"/>
 <rect x="76" y="128" width="28" height="92" fill="#C7441B"/>
+<rect x="0" y="220" width="180" height="14" fill="#3A0F0A"/>
+<rect x="20" y="234" width="60" height="120" fill="#3A0F0A"/>
+<rect x="20" y="234" width="15" height="120" fill="#2B0C06"/>
+<rect x="100" y="234" width="60" height="120" fill="#3A0F0A"/>
+<rect x="145" y="234" width="15" height="120" fill="#2B0C06"/>
+<rect x="20" y="280" width="60" height="10" fill="#FF6B35"/>
+<rect x="100" y="280" width="60" height="10" fill="#FF6B35"/>
+<rect x="15" y="354" width="70" height="30" fill="#1A0C08"/>
+<rect x="95" y="354" width="70" height="30" fill="#1A0C08"/>
+<rect x="15" y="376" width="70" height="8" fill="#3A0F0A"/>
+<rect x="95" y="376" width="70" height="8" fill="#3A0F0A"/>
 <g transform="rotate(55 151 172)">
 <rect x="146" y="70" width="10" height="102" fill="#C9CDD3"/>
 <rect x="147.5" y="72" width="3" height="96" fill="#EDEFF2"/>
@@ -40,6 +51,6 @@
 <circle cx="151" cy="208" r="6" fill="#FF6B35"/>
 </g>
 </g>
-<text x="175" y="430" text-anchor="middle" font-size="14" font-weight="500" fill="#F5E9DD">Kaito Blaze</text>
-<text x="175" y="446" text-anchor="middle" font-size="12" fill="#D8A98D">Hot-headed fire swordsman</text>
+<text x="132" y="465" text-anchor="middle" font-size="14" font-weight="500" fill="#F5E9DD">Kaito Blaze</text>
+<text x="132" y="482" text-anchor="middle" font-size="12" fill="#D8A98D">Hot-headed fire swordsman</text>
 </svg>
