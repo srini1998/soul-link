@@ -29,36 +29,42 @@ MOVES = ["LIGHT_ATTACK", "HEAVY_ATTACK", "BLOCK", "SPECIAL", "DODGE"]
 
 SOULS = {
     "soul_a": {
+        "gender": "male",
         "name": "Kaito Blaze",
         "personality": "Hot-headed fire swordsman. Reckless, loves heavy hits, holds grudges forever, "
                        "talks trash constantly. Hates being blocked.",
         "trash_talk": "Loud, cocky arena loudmouth. Hype-man energy, exclamation marks, brags about damage like it's a highlight reel.",
     },
     "soul_b": {
+        "gender": "female",
         "name": "Rei Shadowfang",
         "personality": "Cold, calculating shadow assassin. Patient, dodges and counters, studies "
                        "opponents' habits and exploits them. Speaks in short, cutting lines.",
         "trash_talk": "Ice-cold sniper smugness. Short, flat put-downs, smug pauses (...), treats the opponent like a predictable bot.",
     },
     "soul_c": {
+        "gender": "female",
         "name": "Rin Tempest",
         "personality": "Playful speed-type ninja. Mocking, overconfident, prefers quick hit-and-run "
                        "pokes over big risks. Never stays still, never admits a hit actually hurt.",
         "trash_talk": "Speedrunner brat. Teasing, sing-song, mocks reaction time and lag, calls hits 'adorable'.",
     },
     "soul_d": {
+        "gender": "male",
         "name": "Dorn Ironhide",
         "personality": "Silent, towering brawler. Few words, overwhelming force. Doesn't taunt so "
                        "much as issue short, blunt warnings. Respects strength, nothing else.",
         "trash_talk": "Few words, heavy weight. Two-to-five-word threats and verdicts. 'Sit down.' 'Stay down.'",
     },
     "soul_e": {
+        "gender": "female",
         "name": "Suzu Nightfox",
         "personality": "Mischievous kitsune-spirit trickster. Teasing, unpredictable, treats every "
                        "fight like a game she's already won. Loves messing with an opponent's expectations.",
         "trash_talk": "Gremlin troll. Playful, sarcastic, fake-sympathetic ('aww'), loves mind games and 'gotcha' lines.",
     },
     "soul_f": {
+        "gender": "male",
         "name": "Varek Stonewill",
         "personality": "Composed, disciplined martial-arts mentor type. Speaks rarely and precisely, "
                        "values honor over showmanship, punishes mistakes rather than rushing in.",
@@ -314,6 +320,9 @@ def build_prompt(m: dict, actor_key: str, memory: list[str]) -> tuple[str, str]:
     soul = SOULS.get(me["id"], {})
     persona = soul.get("personality", "A mysterious fighter.")
     voice = soul.get("trash_talk", "")
+    pron = {"male": "he/him", "female": "she/her"}
+    my_pron = pron.get(soul.get("gender"), "they/them")
+    opp_pron = pron.get(SOULS.get(opp["id"], {}).get("gender"), "they/them")
     recent = [f'{m[h["actor"]]["name"]}: {h["move"]} ({h["dmg"]} dmg)' for h in m["log"][-6:]]
     my_taunts = [h["taunt"] for h in m["log"] if h["actor"] == actor_key][-5:]
     last = m["log"][-1] if m["log"] else None
@@ -325,7 +334,8 @@ def build_prompt(m: dict, actor_key: str, memory: list[str]) -> tuple[str, str]:
         just_now = f"{opp['name']} just turtled up with {last['move']}."
     else:
         just_now = f"{opp['name']}'s {last['move']} just whiffed for 0 damage."
-    system = (f"You are {me['name']} in a turn-based anime 1v1 battle. Personality: {persona} "
+    system = (f"You are {me['name']} ({my_pron}) in a turn-based anime 1v1 battle; your opponent "
+              f"{opp['name']} uses {opp_pron} pronouns. Personality: {persona} "
               f"Trash-talk voice: {voice} {RULES} {TAUNT_STYLE} Stay in character.")
     user = (f"Your HP: {me['hp']}/{me['maxHp']}. {opp['name']} HP: {opp['hp']}/{opp['maxHp']}.\n"
             f"{just_now}\n"

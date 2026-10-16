@@ -6,6 +6,7 @@ export const CHARACTERS = [
     name: "Kaito Blaze",
     tagline: "Hot-headed fire swordsman",
     colors: { primary: "#FF6B35", dark: "#3A0F0A", accent: "#C7441B" },
+    gender: "male", // the voiceId below is a male voice
     voiceId: "X2RFLXFeweiyJjbdE3iz", // ElevenLabs Voice Design (custom: brash raspy fire swordsman)
     element: "fire",
     stage: "desert",
@@ -20,6 +21,7 @@ export const CHARACTERS = [
     name: "Rei Shadowfang",
     tagline: "Cold, calculating shadow assassin",
     colors: { primary: "#5B8DB8", dark: "#13293D", accent: "#5DCAA5" },
+    gender: "female", // the voiceId below is a female voice
     voiceId: "unz9GZ9uU4Pf6SA9zI0h", // ElevenLabs Voice Design (custom: icy, smug shadow assassin)
     element: "shadow",
     stage: "blizzard",
@@ -34,6 +36,7 @@ export const CHARACTERS = [
     name: "Rin Tempest",
     tagline: "Playful speed-type ninja",
     colors: { primary: "#7FDBFF", dark: "#1B4F5C", accent: "#C7F3FF" },
+    gender: "female", // the voiceId below is a female voice
     voiceId: "r44MxNe5ogbCxpRHGiSg", // ElevenLabs Voice Design (custom: fast, teasing speed ninja)
     element: "wind",
     stage: "tropical",
@@ -48,6 +51,7 @@ export const CHARACTERS = [
     name: "Dorn Ironhide",
     tagline: "Silent, towering brawler",
     colors: { primary: "#8A6F52", dark: "#2B2118", accent: "#C9A36B" },
+    gender: "male", // the voiceId below is a male voice
     voiceId: "OLWpgWzSnDVueuYWzHBg", // ElevenLabs Voice Design (custom: deep gravelly Nordic dwarf)
     element: "earth",
     stage: "village",
@@ -62,6 +66,7 @@ export const CHARACTERS = [
     name: "Suzu Nightfox",
     tagline: "Mischievous kitsune trickster",
     colors: { primary: "#B968C7", dark: "#3D1F45", accent: "#E6A8F0" },
+    gender: "female", // the voiceId below is a female voice
     voiceId: "x8Dh8b7GBF5F7E3xz0Dy", // ElevenLabs Voice Design (custom: sly, giggling fox-spirit trickster)
     element: "trickster",
     stage: "shrine",
@@ -76,6 +81,7 @@ export const CHARACTERS = [
     name: "Varek Stonewill",
     tagline: "Composed, disciplined mentor",
     colors: { primary: "#7A8B6F", dark: "#2E3A28", accent: "#B7C9A8" },
+    gender: "male", // the voiceId below is a male voice
     voiceId: "6ewkTCLI0AbwmloLWYpD", // ElevenLabs Voice Design (custom: calm, ethereal elven master)
     element: "discipline",
     stage: "dojo",

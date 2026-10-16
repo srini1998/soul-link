@@ -431,17 +431,6 @@ function renderBattle() {
     result.className = "status";
     result.textContent = winnerKey ? `${state.match[winnerKey].name} wins.` : "DRAW.";
     wrap.appendChild(result);
-    if (!state.wonSpoken) {
-      state.wonSpoken = true;
-      if (winnerKey) {
-        const w = state.match[winnerKey];
-        const winner = getCharacter(w.id);
-        announce(`${w.name} wins!${w.hp >= w.maxHp ? " Flawless victory!" : ""}`);
-        speak(winner.lines.win, winner.voiceId);
-      } else {
-        announce("Draw! Nobody wins!");
-      }
-    }
   }
 
   const backBtn = document.createElement("button");
@@ -465,22 +454,36 @@ async function runTurn() {
   state.busy = true;
   render();
   let spoken = Promise.resolve();
+  let res = null;
   try {
-    const res = await playTurn(state.matchId);
+    res = await playTurn(state.matchId);
     state.match = res.state;
     state.lastTurn = res;
     state.error = null;
     if (res.done) state.autoplay = false;
-    const actorChar = getCharacter(state.match[res.actor].id);
-    spoken = speak(res.taunt, actorChar.voiceId); // resolves when the line ends (or is skipped)
   } catch (e) {
     state.error = e.message;
     state.autoplay = false;
   } finally {
     state.busy = false;
-    render();
-    // render() just computed this turn's announcer banner; voice it after the taunt
-    if (state.fx?.fresh && state.fx.banner) spoken = announce(state.fx.banner);
+    render(); // computes this turn's announcer banner (state.fx)
+  }
+  if (res) {
+    // Voice order: announcer callout (MASSIVE!, FIRST BLOOD!...) -> fighter's taunt -> winner call.
+    if (state.fx?.fresh && state.fx.banner) announce(state.fx.banner);
+    const actorChar = getCharacter(state.match[res.actor].id);
+    spoken = speak(res.taunt, actorChar.voiceId);
+    if (res.done && !state.wonSpoken) {
+      state.wonSpoken = true;
+      const w = res.winner ? state.match[res.winner] : null;
+      if (w) {
+        announce(`${w.name} wins!${w.hp >= w.maxHp ? " Flawless victory!" : ""}`);
+        const winner = getCharacter(w.id);
+        spoken = speak(winner.lines.win, winner.voiceId);
+      } else {
+        spoken = announce("Draw! Nobody wins!");
+      }
+    }
   }
   if (state.autoplay && !state.lastTurn?.done) {
     // Let the taunt finish before the next turn so voices aren't chopped.

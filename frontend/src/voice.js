@@ -3,9 +3,12 @@
 // body {text, model_id, voice_settings}, 200 response is the audio file as bytes.
 const API_KEY = import.meta.env.VITE_ELEVENLABS_API_KEY;
 
-const MODELS = ["eleven_flash_v2_5", "eleven_multilingual_v2"];
-// Lower stability + higher style = more dramatic, UT-announcer delivery.
-const VOICE_SETTINGS = { stability: 0.3, similarity_boost: 0.8, style: 0.6, use_speaker_boost: true };
+// One model for every line so a character never changes timbre mid-match (no fallback model swap).
+const MODEL = "eleven_flash_v2_5";
+// Stability high enough that each character keeps the same voice line to line, style for attitude.
+const VOICE_SETTINGS = { stability: 0.55, similarity_boost: 0.9, style: 0.45, use_speaker_boost: true };
+// Fixed seed per voice: same character -> same delivery "personality" every time.
+const seedFor = (voiceId) => [...voiceId].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7) % 4294967295;
 // Arena announcer, custom-designed in ElevenLabs Voice Design (booming, gritty, sci-fi PA).
 export const ANNOUNCER_VOICE = "bpAREj3auhoUmnRTK6ju";
 const cache = new Map(); // announcer lines repeat: fetch each once (also eases ElevenLabs rate limits)
@@ -23,17 +26,21 @@ export function speak(text, voiceId, { broadcast = false, cacheable = false } = 
 }
 
 async function fetchAudio(text, voiceId) {
-  for (const model_id of MODELS) {
-    const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-      method: "POST",
-      headers: {
-        "xi-api-key": API_KEY,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ text, model_id, voice_settings: VOICE_SETTINGS }),
-    });
-    if (res.ok) return res.blob();
-    console.warn(`[voice] ElevenLabs ${model_id} failed: ${res.status}`);
+  // Retry the SAME model on rate limits (429) / hiccups instead of switching models.
+  for (const wait of [0, 700, 1600]) {
+    if (wait) await new Promise((r) => setTimeout(r, wait));
+    try {
+      const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+        method: "POST",
+        headers: { "xi-api-key": API_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ text, model_id: MODEL, voice_settings: VOICE_SETTINGS, seed: seedFor(voiceId) }),
+      });
+      if (res.ok) return res.blob();
+      console.warn(`[voice] ElevenLabs ${res.status}, retrying`);
+      if (res.status !== 429 && res.status < 500) return null;
+    } catch (e) {
+      console.warn("[voice] network error, retrying");
+    }
   }
   return null;
 }
