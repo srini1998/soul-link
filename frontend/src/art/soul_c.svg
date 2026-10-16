@@ -1,0 +1,39 @@
+<svg width="100%" viewBox="0 0 680 480" role="img"><title>Retro pixel-sprite portrait for Rin Tempest</title><desc>Chunky pixel-art portrait of a playful speed-type ninja: low-profile swept hair under a cyan headband with a flowing ribbon tail, a side ponytail, a fitted cyan suit, and a short one-piece blade.</desc>
+<rect x="20" y="20" width="310" height="440" rx="4" fill="#0B2630"/>
+<g transform="translate(60,40)" stroke="#0B2E36" stroke-width="1.5">
+<rect x="158" y="95" width="14" height="50" fill="#1B4F5C"/>
+<rect x="160" y="140" width="10" height="35" fill="#1B4F5C"/>
+<rect x="156" y="92" width="18" height="6" fill="#7FDBFF"/>
+<rect x="50" y="40" width="80" height="70" fill="#E8B48A"/>
+<rect x="50" y="40" width="10" height="70" fill="#C98F63"/>
+<rect x="120" y="40" width="10" height="70" fill="#C98F63"/>
+<rect x="50" y="100" width="80" height="10" fill="#C98F63"/>
+<rect x="45" y="20" width="90" height="40" fill="#1B4F5C"/>
+<rect x="45" y="20" width="90" height="10" fill="#7FDBFF"/>
+<rect x="64" y="66" width="14" height="8" fill="#1A0C08"/>
+<rect x="66" y="66" width="6" height="4" fill="#C7F3FF"/>
+<rect x="102" y="66" width="14" height="8" fill="#1A0C08"/>
+<rect x="104" y="66" width="6" height="4" fill="#C7F3FF"/>
+<rect x="64" y="60" width="18" height="3" fill="#1B4F5C"/>
+<rect x="88" y="104" width="24" height="4" fill="#8A6F52"/>
+<rect x="45" y="55" width="90" height="10" fill="#7FDBFF"/>
+<rect x="45" y="55" width="90" height="3" fill="#C7F3FF"/>
+<polygon points="135,50 135,62 187,65 187,59" fill="#7FDBFF"/>
+<polygon points="135,52 135,58 175,60.5 175,58" fill="#C7F3FF"/>
+<rect x="20" y="110" width="140" height="18" fill="#1B4F5C"/>
+<rect x="30" y="110" width="30" height="18" fill="#7FDBFF"/>
+<rect x="110" y="110" width="30" height="18" fill="#7FDBFF"/>
+<rect x="0" y="128" width="180" height="92" fill="#1B4F5C"/>
+<rect x="0" y="128" width="180" height="14" fill="#2A6B78"/>
+<rect x="76" y="128" width="28" height="92" fill="#7FDBFF"/>
+<g transform="rotate(55 151 172)">
+<rect x="147" y="110" width="8" height="62" fill="#C9CDD3"/>
+<rect x="148.5" y="112" width="3" height="56" fill="#EDEFF2"/>
+<rect x="138" y="172" width="28" height="8" fill="#7FDBFF"/>
+<rect x="145" y="180" width="12" height="22" fill="#1B4F5C"/>
+<circle cx="151" cy="204" r="5" fill="#7FDBFF"/>
+</g>
+</g>
+<text x="175" y="430" text-anchor="middle" font-size="14" font-weight="500" fill="#E3FAFF">Rin Tempest</text>
+<text x="175" y="446" text-anchor="middle" font-size="12" fill="#9FDCE8">Playful speed-type ninja</text>
+</svg>

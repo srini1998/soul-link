@@ -1,0 +1,29 @@
+<svg width="100%" viewBox="0 0 680 480" role="img"><title>Retro pixel-sprite portrait for Varek Stonewill</title><desc>Chunky pixel-art portrait of a composed, disciplined martial-arts mentor: a tidy topknot, calm closed-eye expression, fully symmetric body and shoulders, and a geometric square-and-circle emblem on the chest instead of a weapon.</desc>
+<rect x="20" y="20" width="310" height="440" rx="4" fill="#161D13"/>
+<g transform="translate(60,40)" stroke="#0E1410" stroke-width="1.5">
+<rect x="90" y="10" width="20" height="18" fill="#2E3A28"/>
+<rect x="90" y="24" width="20" height="5" fill="#B7C9A8"/>
+<rect x="50" y="40" width="80" height="70" fill="#E8B48A"/>
+<rect x="50" y="40" width="10" height="70" fill="#C98F63"/>
+<rect x="120" y="40" width="10" height="70" fill="#C98F63"/>
+<rect x="50" y="100" width="80" height="10" fill="#C98F63"/>
+<rect x="50" y="25" width="80" height="25" fill="#2E3A28"/>
+<rect x="50" y="25" width="80" height="6" fill="#7A8B6F"/>
+<rect x="64" y="68" width="18" height="3" fill="#2E3A28"/>
+<rect x="98" y="68" width="18" height="3" fill="#2E3A28"/>
+<rect x="64" y="75" width="18" height="3" fill="#2E3A28"/>
+<rect x="98" y="75" width="18" height="3" fill="#2E3A28"/>
+<rect x="85" y="108" width="30" height="3" fill="#2E3A28"/>
+<rect x="86" y="110" width="28" height="17" fill="#C98F63"/>
+<rect x="20" y="127" width="140" height="90" fill="#2E3A28"/>
+<rect x="20" y="127" width="30" height="15" fill="#7A8B6F"/>
+<rect x="130" y="127" width="30" height="15" fill="#7A8B6F"/>
+<rect x="80" y="127" width="20" height="90" fill="#7A8B6F"/>
+<rect x="72" y="147" width="36" height="36" fill="#B7C9A8"/>
+<rect x="78" y="153" width="24" height="24" fill="#2E3A28"/>
+<circle cx="90" cy="165" r="8" fill="#7A8B6F"/>
+<circle cx="90" cy="165" r="3" fill="#B7C9A8"/>
+</g>
+<text x="175" y="430" text-anchor="middle" font-size="14" font-weight="500" fill="#E6EEE0">Varek Stonewill</text>
+<text x="175" y="446" text-anchor="middle" font-size="12" fill="#AABF9D">Composed, disciplined mentor</text>
+</svg>
