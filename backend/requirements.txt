@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+httpx
+pydantic
+python-dotenv
+anthropic
+openai
+arize-otel
+openinference-instrumentation-anthropic
+openinference-instrumentation-openai
