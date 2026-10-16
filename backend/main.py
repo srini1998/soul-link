@@ -75,6 +75,7 @@ if not os.getenv("DISABLE_CORS"):
     app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 MATCHES: dict[str, dict] = {}
+_BG: set = set()  # strong refs so background writes are not garbage-collected
 
 
 class StartReq(BaseModel):
@@ -101,21 +102,14 @@ def _surreal_headers():
 
 
 def _flatten_memory(data) -> list[str]:
-    """Response shape isn't pinned down yet — pull any text-ish strings out of it."""
-    out: list[str] = []
-    if isinstance(data, str):
-        out.append(data)
-    elif isinstance(data, list):
-        for x in data:
-            out.extend(_flatten_memory(x))
-    elif isinstance(data, dict):
-        for k in ("text", "fact", "content", "answer"):
-            if isinstance(data.get(k), str):
-                out.append(data[k])
-                return out
-        for k in ("results", "facts", "memories", "items", "data", "result"):
-            if k in data:
-                out.extend(_flatten_memory(data[k]))
+    """Agent Memory /query returns {"hits": [{"text", "source", "score", ...}]}.
+    Skip bare entity hits (just a name like "Rei Shadowfang") and keep real memories."""
+    hits = data.get("hits", []) if isinstance(data, dict) else []
+    out = []
+    for h in hits:
+        if isinstance(h, dict) and h.get("source") != "entity" and isinstance(h.get("text"), str):
+            if h["text"] not in out:
+                out.append(h["text"])
     return out
 
 
@@ -130,7 +124,7 @@ async def memory_query(m: dict, actor_key: str) -> list[str]:
     if SURREAL_SCOPES:
         body["lens"] = SURREAL_SCOPES
     try:
-        async with httpx.AsyncClient(timeout=6) as c:
+        async with httpx.AsyncClient(timeout=15) as c:
             r = await c.post(f"{SURREAL_HOST}/api/v1/{SURREAL_CONTEXT}/query", json=body,
                              headers=_surreal_headers())
             r.raise_for_status()
@@ -140,7 +134,7 @@ async def memory_query(m: dict, actor_key: str) -> list[str]:
                 facts = [r.text]
             return [f for f in facts if f][:6]
     except Exception as e:
-        print(f"[surreal] query failed: {e}")
+        print(f"[surreal] query failed: {e!r}")
         return []
 
 
@@ -165,7 +159,7 @@ async def memory_write(m: dict):
                              headers=_surreal_headers())
             print(f"[surreal] write {r.status_code}: {r.text[:200]}")
     except Exception as e:
-        print(f"[surreal] write failed: {e}")
+        print(f"[surreal] write failed: {e!r}")
 
 
 # ---------- LLM decision ----------
@@ -292,11 +286,21 @@ def health():
             "memory": "surreal" if SURREAL_ON else "stub", "matches": len(MATCHES)}
 
 
+async def get_memory(m: dict, actor_key: str) -> list[str]:
+    try:
+        return await asyncio.wait_for(asyncio.shield(m["memory"][actor_key]), timeout=15)
+    except Exception as e:
+        print(f"[surreal] memory unavailable: {e!r}")
+        return []
+
+
 @app.post("/match/start")
-def match_start(req: StartReq):
+async def match_start(req: StartReq):
     mid = str(uuid.uuid4())
     m = {"id": mid, "agentA": fighter(req.agentA), "agentB": fighter(req.agentB), "turn": 0,
          "last_move": {"agentA": None, "agentB": None}, "log": [], "done": False, "winner": None}
+    # memory only changes when a match ends, so fetch it once per fighter, in the background (queries take 2-7s)
+    m["memory"] = {k: asyncio.create_task(memory_query(m, k)) for k in ("agentA", "agentB")}
     MATCHES[mid] = m
     return {"matchId": mid, "state": public_state(m)}
 
@@ -311,7 +315,7 @@ async def match_turn(req: TurnReq):
         return {"actor": actor, "move": "BLOCK", "taunt": "", "damageDealt": 0,
                 "state": public_state(m), "memoryUsed": [], "done": True, "winner": m["winner"]}
 
-    memory = await memory_query(m, actor)
+    memory = await get_memory(m, actor)
     move, taunt = await decide(m, actor, memory)
     move, dmg = resolve(m, actor, move)
 
@@ -325,7 +329,9 @@ async def match_turn(req: TurnReq):
         m["done"] = True
         a, b = m["agentA"]["hp"], m["agentB"]["hp"]
         m["winner"] = actor if defender["hp"] <= 0 else ("agentA" if a > b else "agentB" if b > a else None)
-        asyncio.create_task(memory_write(m))
+        t = asyncio.create_task(memory_write(m))
+        _BG.add(t)
+        t.add_done_callback(_BG.discard)
 
     return {"actor": actor, "move": move, "taunt": taunt, "damageDealt": dmg,
             "state": public_state(m), "memoryUsed": memory, "done": m["done"], "winner": m["winner"]}
