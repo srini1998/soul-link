@@ -25,8 +25,7 @@ def read_env() -> dict:
             line = line.strip()
             if line and not line.startswith("#") and "=" in line:
                 k, v = line.split("=", 1)
-                if v.strip():
-                    env[k.strip()] = v.strip()
+                env[k.strip()] = v.strip()  # keep blanks: they must clear placeholders set at sandbox creation
     return env
 
 
@@ -46,7 +45,7 @@ def main():
     else:
         t = time.time()
         sb = daytona.create(CreateSandboxFromSnapshotParams(
-            language="python", public=True, env_vars=env, auto_stop_interval=0,
+            language="python", public=True, env_vars={k: v for k, v in env.items() if v}, auto_stop_interval=0,
             labels={"app": "soul-link"}))
         print(f"created sandbox {sb.id} in {time.time() - t:.2f}s")
 
