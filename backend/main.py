@@ -164,7 +164,10 @@ async def memory_query(m: dict, actor_key: str) -> list[str]:
                 facts = _flatten_memory(r.json())
             except ValueError:
                 facts = [r.text]
-            return [f for f in facts if f][:6]
+            # Search is semantic, so it returns other pairs' fights too; keep only
+            # summaries naming both fighter ids (order-independent).
+            tags = (f"({me['id']})", f"({opp['id']})")
+            return [f for f in facts if f and all(t in f for t in tags)][:6]
     except Exception as e:
         print(f"[surreal] query failed: {e!r}")
         return []
