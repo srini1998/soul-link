@@ -156,6 +156,8 @@ function renderSelect() {
       state.lastTurn = null;
       state.wonSpoken = false;
       state.koShown = false;
+      state.splatter = null;
+      state.splatterShown = false;
       state.screen = "battle";
       render();
       startMusic(); // Start click is a user gesture, so the browser lets audio begin
@@ -187,6 +189,38 @@ const STAGE_LANDMARKS = {
   shrine: 3,
   dojo: 3,
 };
+
+// Blood burst from the K.O.'d fighter: droplets fly out and arc down, splats stay on the floor.
+// Random spread is generated once per match (stored in state) so re-renders don't reshuffle it.
+function bloodSplatter(loserKey) {
+  if (!state.splatter || state.splatter.key !== loserKey) {
+    const r = (a, b) => a + Math.random() * (b - a);
+    state.splatter = {
+      key: loserKey,
+      drops: Array.from({ length: 26 }, () => ({
+        dx: r(-190, 190), dy: r(-170, -20), size: r(5, 15), delay: r(0, 0.25), dur: r(0.7, 1.2),
+      })),
+      splats: Array.from({ length: 9 }, () => ({ x: r(-150, 150), w: r(14, 46), delay: r(0.7, 1.3) })),
+    };
+  }
+  const box = document.createElement("div");
+  box.className = `blood blood-${loserKey}`;
+  for (const d of state.splatter.drops) {
+    const drop = document.createElement("span");
+    drop.className = "blood-drop";
+    drop.style.cssText = `--dx:${d.dx}px;--dy:${d.dy}px;--s:${d.size}px;animation-delay:${d.delay}s;animation-duration:${d.dur}s`;
+    box.appendChild(drop);
+  }
+  for (const sp of state.splatter.splats) {
+    const splat = document.createElement("span");
+    splat.className = "blood-splat";
+    splat.style.cssText = `--x:${sp.x}px;--w:${sp.w}px;animation-delay:${sp.delay}s`;
+    box.appendChild(splat);
+  }
+  if (state.koShown && state.splatterShown) box.classList.add("blood-static");
+  state.splatterShown = true;
+  return box;
+}
 
 function stageBackground(theme) {
   const stage = document.createElement("div");
@@ -328,6 +362,9 @@ function renderBattle() {
   // Stage follows agentA, same convention classic fighters use for whoever's "home" slot.
   arena.appendChild(stageBackground(getCharacter(state.match.agentA.id).stage));
   arena.append(fighterBlock("agentA"), fighterBlock("agentB"));
+  if (state.lastTurn?.done && state.lastTurn.winner) {
+    arena.appendChild(bloodSplatter(state.lastTurn.winner === "agentA" ? "agentB" : "agentA"));
+  }
   if (state.lastTurn?.done) {
     const w = state.lastTurn.winner;
     const v = document.createElement("div");

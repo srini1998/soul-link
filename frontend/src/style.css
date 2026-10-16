@@ -604,3 +604,28 @@ h1 { font-family: var(--pixel); font-size: 20px; font-weight: 400; letter-spacin
   0% { transform: scaleY(0); }
   100% { transform: scaleY(1); }
 }
+
+/* ---------- K.O. blood splatter ---------- */
+.blood { position: absolute; bottom: 4%; width: 0; height: 0; z-index: 7; pointer-events: none; }
+.blood-agentA { left: 26%; }
+.blood-agentB { left: 74%; }
+.blood-drop {
+  position: absolute; left: 0; top: -90px; width: var(--s); height: var(--s);
+  background: radial-gradient(circle at 35% 30%, #e01b1b 0%, #a30000 55%, #5c0000 100%);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  opacity: 0; animation-name: blood-fly; animation-timing-function: cubic-bezier(.25,.6,.5,1); animation-fill-mode: forwards;
+}
+@keyframes blood-fly {
+  0%   { opacity: 1; transform: translate(0, 0) scale(0.4); }
+  55%  { opacity: 1; transform: translate(calc(var(--dx) * 0.75), var(--dy)) scale(1); }
+  100% { opacity: 0; transform: translate(var(--dx), 95px) scale(0.6); }
+}
+.blood-splat {
+  position: absolute; left: var(--x); top: 0; width: var(--w); height: calc(var(--w) * 0.32);
+  background: radial-gradient(ellipse at center, #9a0000 0%, #6e0000 60%, transparent 72%);
+  border-radius: 50%; transform: translateX(-50%) scale(0); opacity: 0.9;
+  animation: blood-pool 0.35s ease-out forwards;
+}
+@keyframes blood-pool { to { transform: translateX(-50%) scale(1); } }
+.blood-static .blood-drop { display: none; }
+.blood-static .blood-splat { animation-duration: 0s; animation-delay: 0s !important; }
