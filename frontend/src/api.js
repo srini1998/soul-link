@@ -14,11 +14,22 @@ const STUB_TAUNTS = {
 const mockMatches = new Map();
 
 async function post(path, body) {
+  // credentials: "include" matters specifically for the Daytona preview URL: it shows a
+  // one-time browser warning interstitial (HTML, not JSON) until its bypass cookie is sent
+  // back, and fetch omits cookies on cross-origin requests unless told to include them.
   const res = await fetch(`${BASE_URL}${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify(body),
   });
+  const contentType = res.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    throw new Error(
+      `${path} returned non-JSON (${res.status}) — if this is a Daytona preview URL, visit ` +
+        `${BASE_URL} directly in this browser once to accept its preview warning, then retry.`
+    );
+  }
   if (!res.ok) {
     const detail = await res.json().catch(() => ({}));
     throw new Error(detail.detail || `${path} failed: ${res.status}`);
