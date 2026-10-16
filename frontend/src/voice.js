@@ -6,8 +6,8 @@ const API_KEY = import.meta.env.VITE_ELEVENLABS_API_KEY;
 const MODELS = ["eleven_flash_v2_5", "eleven_multilingual_v2"];
 // Lower stability + higher style = more dramatic, UT-announcer delivery.
 const VOICE_SETTINGS = { stability: 0.3, similarity_boost: 0.8, style: 0.6, use_speaker_boost: true };
-// Gritty arena announcer for callouts (FIRST BLOOD!, GODLIKE!). ElevenLabs premade: Harry - Fierce Warrior.
-export const ANNOUNCER_VOICE = "SOYHLrjzK2X1ezoPC6cr";
+// Arena announcer, custom-designed in ElevenLabs Voice Design (booming, gritty, sci-fi PA).
+export const ANNOUNCER_VOICE = "bpAREj3auhoUmnRTK6ju";
 const cache = new Map(); // announcer lines repeat: fetch each once (also eases ElevenLabs rate limits)
 const SAFETY_TIMEOUT_MS = 8000;
 

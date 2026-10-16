@@ -6,7 +6,7 @@ export const CHARACTERS = [
     name: "Kaito Blaze",
     tagline: "Hot-headed fire swordsman",
     colors: { primary: "#FF6B35", dark: "#3A0F0A", accent: "#C7441B" },
-    voiceId: "TX3LPaxmHKxFdv7VOQHJ", // ElevenLabs: Liam - Energetic (cocky loudmouth)
+    voiceId: "X2RFLXFeweiyJjbdE3iz", // ElevenLabs Voice Design (custom: brash raspy fire swordsman)
     element: "fire",
     stage: "desert",
     lines: {
@@ -20,7 +20,7 @@ export const CHARACTERS = [
     name: "Rei Shadowfang",
     tagline: "Cold, calculating shadow assassin",
     colors: { primary: "#5B8DB8", dark: "#13293D", accent: "#5DCAA5" },
-    voiceId: "pFZP5JQG7iQjIQuC4Bku", // ElevenLabs: Lily - Velvety Actress (smug sniper)
+    voiceId: "unz9GZ9uU4Pf6SA9zI0h", // ElevenLabs Voice Design (custom: icy, smug shadow assassin)
     element: "shadow",
     stage: "blizzard",
     lines: {
@@ -34,7 +34,7 @@ export const CHARACTERS = [
     name: "Rin Tempest",
     tagline: "Playful speed-type ninja",
     colors: { primary: "#7FDBFF", dark: "#1B4F5C", accent: "#C7F3FF" },
-    voiceId: "FGY2WhTYpPnrIDTdsKH5", // ElevenLabs: Laura - Enthusiast, Quirky Attitude
+    voiceId: "r44MxNe5ogbCxpRHGiSg", // ElevenLabs Voice Design (custom: fast, teasing speed ninja)
     element: "wind",
     stage: "tropical",
     lines: {
@@ -48,7 +48,7 @@ export const CHARACTERS = [
     name: "Dorn Ironhide",
     tagline: "Silent, towering brawler",
     colors: { primary: "#8A6F52", dark: "#2B2118", accent: "#C9A36B" },
-    voiceId: "pNInz6obpgDQGcFmaJgB", // ElevenLabs: Adam - Dominant, Firm (heavy brute)
+    voiceId: "OLWpgWzSnDVueuYWzHBg", // ElevenLabs Voice Design (custom: deep gravelly Nordic dwarf)
     element: "earth",
     stage: "village",
     lines: {
@@ -62,7 +62,7 @@ export const CHARACTERS = [
     name: "Suzu Nightfox",
     tagline: "Mischievous kitsune trickster",
     colors: { primary: "#B968C7", dark: "#3D1F45", accent: "#E6A8F0" },
-    voiceId: "N2lVS1w4EtoT3dr4eOWO", // ElevenLabs: Callum - Husky Trickster
+    voiceId: "x8Dh8b7GBF5F7E3xz0Dy", // ElevenLabs Voice Design (custom: sly, giggling fox-spirit trickster)
     element: "trickster",
     stage: "shrine",
     lines: {
@@ -76,7 +76,7 @@ export const CHARACTERS = [
     name: "Varek Stonewill",
     tagline: "Composed, disciplined mentor",
     colors: { primary: "#7A8B6F", dark: "#2E3A28", accent: "#B7C9A8" },
-    voiceId: "onwK4e9ZLuTAKqWW03F9", // ElevenLabs: Daniel - Steady Broadcaster (cold sensei)
+    voiceId: "6ewkTCLI0AbwmloLWYpD", // ElevenLabs Voice Design (custom: calm, ethereal elven master)
     element: "discipline",
     stage: "dojo",
     lines: {
