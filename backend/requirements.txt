@@ -3,7 +3,7 @@ uvicorn
 httpx
 pydantic
 python-dotenv
-anthropic
+anthropic[bedrock]>=1.15.0
 openai
 arize-otel
 openinference-instrumentation-anthropic

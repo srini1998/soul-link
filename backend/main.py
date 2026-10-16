@@ -212,10 +212,11 @@ def llm_decide_sync(system: str, user: str) -> dict:
     if LLM_BACKEND in ("bedrock", "anthropic"):
         import anthropic
         if LLM_BACKEND == "bedrock":
-            client = anthropic.AnthropicBedrockMantle(
+            # classic bedrock-runtime client: the Mantle endpoint 404s on this lab account
+            client = anthropic.AnthropicBedrock(
                 aws_access_key=os.getenv("AWS_ACCESS_KEY_ID"), aws_secret_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
                 aws_session_token=os.getenv("AWS_SESSION_TOKEN") or None, aws_region=AWS_REGION)
-            model = LLM_MODEL or "anthropic.claude-opus-5-5"
+            model = LLM_MODEL or "us.anthropic.claude-opus-5-5"
         else:
             client = anthropic.Anthropic()
             model = LLM_MODEL or "claude-opus-5-5"
