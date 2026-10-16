@@ -6,6 +6,11 @@ Local dev: `http://localhost:8000`
 All requests are `POST` with a JSON body and `Content-Type: application/json`. No auth is needed. CORS is open.
 This shape does not change when the backend switches from stub to the real LLM and memory.
 
+**Required header for browsers:** send `X-Daytona-Skip-Preview-Warning: true` on every request.
+Without it, Daytona's preview proxy returns an HTML warning page (`text/html`) to browsers in place of the JSON
+until someone has clicked through it in that browser. With the header you get JSON straight away, and the CORS
+preflight allows it. This was verified against the live URL. You don't need `credentials: "include"` with it.
+
 ## GET /
 Health check. → `{"ok": true, "llm": "stub|anthropic|openai", "memory": "stub|surreal", "matches": 0}`
 
