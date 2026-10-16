@@ -32,31 +32,37 @@ SOULS = {
         "name": "Kaito Blaze",
         "personality": "Hot-headed fire swordsman. Reckless, loves heavy hits, holds grudges forever, "
                        "talks trash constantly. Hates being blocked.",
+        "trash_talk": "Loud, cocky arena loudmouth. Hype-man energy, exclamation marks, brags about damage like it's a highlight reel.",
     },
     "soul_b": {
         "name": "Rei Shadowfang",
         "personality": "Cold, calculating shadow assassin. Patient, dodges and counters, studies "
                        "opponents' habits and exploits them. Speaks in short, cutting lines.",
+        "trash_talk": "Ice-cold sniper smugness. Short, flat put-downs, smug pauses (...), treats the opponent like a predictable bot.",
     },
     "soul_c": {
         "name": "Rin Tempest",
         "personality": "Playful speed-type ninja. Mocking, overconfident, prefers quick hit-and-run "
                        "pokes over big risks. Never stays still, never admits a hit actually hurt.",
+        "trash_talk": "Speedrunner brat. Teasing, sing-song, mocks reaction time and lag, calls hits 'adorable'.",
     },
     "soul_d": {
         "name": "Dorn Ironhide",
         "personality": "Silent, towering brawler. Few words, overwhelming force. Doesn't taunt so "
                        "much as issue short, blunt warnings. Respects strength, nothing else.",
+        "trash_talk": "Few words, heavy weight. Two-to-five-word threats and verdicts. 'Sit down.' 'Stay down.'",
     },
     "soul_e": {
         "name": "Suzu Nightfox",
         "personality": "Mischievous kitsune-spirit trickster. Teasing, unpredictable, treats every "
                        "fight like a game she's already won. Loves messing with an opponent's expectations.",
+        "trash_talk": "Gremlin troll. Playful, sarcastic, fake-sympathetic ('aww'), loves mind games and 'gotcha' lines.",
     },
     "soul_f": {
         "name": "Varek Stonewill",
         "personality": "Composed, disciplined martial-arts mentor type. Speaks rarely and precisely, "
                        "values honor over showmanship, punishes mistakes rather than rushing in.",
+        "trash_talk": "Disappointed sensei. Calm, precise, devastating critiques of the opponent's technique. Never shouts.",
     },
 }
 
@@ -265,12 +271,21 @@ STUB_TAUNTS = {
     "DODGE": "Too slow.",
     "SPECIAL": "Soul Link... unleashed!",
 }
+# used when the LLM call fails: arena-style lines so even a fallback turn still talks trash
+FALLBACK_TAUNTS = {
+    "LIGHT_ATTACK": ["Was that supposed to hurt? Watch this.", "Warm-up's over.", "Tag. You're it."],
+    "HEAVY_ATTACK": ["Sit down!", "Stay down this time!", "Another one for the scoreboard!"],
+    "BLOCK": ["Nice try... really. It was adorable.", "You call that aim?", "Is that all you've got?"],
+    "DODGE": ["Too slow.", "Did you lag, or are you just like that?", "I've seen bots with better reflexes."],
+    "SPECIAL": ["Hold still, I'm getting a highlight!", "Respawn and try again!", "Boom. Next!"],
+}
+
 
 DECISION_SCHEMA = {
     "type": "object",
     "properties": {
         "move": {"type": "string", "enum": MOVES},
-        "taunt": {"type": "string", "description": "One short in-character line, max 15 words."},
+        "taunt": {"type": "string", "description": "One punchy in-character trash-talk line, max 12 words."},
     },
     "required": ["move", "taunt"],
     "additionalProperties": False,
@@ -282,17 +297,45 @@ RULES = ("Moves: LIGHT_ATTACK (8-12 dmg, reliable), HEAVY_ATTACK (16-24 dmg), "
          "Pick the move that best fits your personality AND exploits what memory says about this opponent.")
 
 
+TAUNT_STYLE = (
+    "Taunts are arena-shooter trash talk, like an Unreal Tournament announcer with a grudge: short, "
+    "punchy, cocky, needling. Max 12 words, usually fewer. Gamer jabs are welcome: respawn, lag, bots, "
+    "scoreboard, highlight reel, 'get off my map', 'next!'. Use the receipts: past results from memory, "
+    "current HP, what just happened last turn. Only quote numbers and results that appear in this "
+    "prompt; never invent past stats. Winning -> rub it in. Losing -> deny, excuse, or promise "
+    "payback. Your hit whiffed -> cover with swagger. Punctuation is for the voice actor: '!' for hype, "
+    "'...' for a smug pause. Never reuse or lightly reword one of your earlier taunts. Keep it PG-13: "
+    "no profanity, slurs, or real-world insults; mock the fighting, not the person. "
+    "Flavor examples (don't copy verbatim): 'Respawn and try again.' 'Did you lag, or are you just like "
+    "that?' 'Hold still, I'm trying to get a highlight.' 'Nice try... really. It was adorable.' 'Sit down.'"
+)
+
+
 def build_prompt(m: dict, actor_key: str, memory: list[str]) -> tuple[str, str]:
     me, opp = m[actor_key], m[other(actor_key)]
-    persona = SOULS.get(me["id"], {}).get("personality", "A mysterious fighter.")
-    recent = [f'{m[h["actor"]]["name"]}: {h["move"]}' for h in m["log"][-6:]]
+    soul = SOULS.get(me["id"], {})
+    persona = soul.get("personality", "A mysterious fighter.")
+    voice = soul.get("trash_talk", "")
+    recent = [f'{m[h["actor"]]["name"]}: {h["move"]} ({h["dmg"]} dmg)' for h in m["log"][-6:]]
+    my_taunts = [h["taunt"] for h in m["log"] if h["actor"] == actor_key][-5:]
+    last = m["log"][-1] if m["log"] else None
+    if last is None:
+        just_now = "Opening move: first impression, make it count."
+    elif last["dmg"] > 0:
+        just_now = f"{opp['name']} just hit you with {last['move']} for {last['dmg']} damage."
+    elif last["move"] in ("BLOCK", "DODGE"):
+        just_now = f"{opp['name']} just turtled up with {last['move']}."
+    else:
+        just_now = f"{opp['name']}'s {last['move']} just whiffed for 0 damage."
     system = (f"You are {me['name']} in a turn-based anime 1v1 battle. Personality: {persona} "
-              f"{RULES} Stay in character.")
+              f"Trash-talk voice: {voice} {RULES} {TAUNT_STYLE} Stay in character.")
     user = (f"Your HP: {me['hp']}/{me['maxHp']}. {opp['name']} HP: {opp['hp']}/{opp['maxHp']}.\n"
+            f"{just_now}\n"
             f"Recent turns this match: {recent or 'none, this is the opening move'}.\n"
-            f"Memories of past fights vs {opp['name']}: {memory or 'none — first time meeting'}.\n"
+            f"Memories of past fights vs {opp['name']}: {memory or 'none, first time meeting'}.\n"
             f"Your last move: {m['last_move'][actor_key] or 'none'}.\n"
-            f"Choose your move and a taunt. Reference a memory in the taunt if you have one.")
+            f"Your taunts so far this match (do NOT repeat or rephrase): {my_taunts or 'none yet'}.\n"
+            f"Choose your move and one fresh taunt. Use a memory as ammo if you have one.")
     return system, user
 
 
@@ -350,7 +393,7 @@ async def decide(m: dict, actor_key: str, memory: list[str]) -> tuple[str, str]:
     except Exception as e:
         print(f"[llm] fallback: {e}")
         move = random.choice(["LIGHT_ATTACK", "HEAVY_ATTACK", "BLOCK"])
-        return move, STUB_TAUNTS[move]
+        return move, random.choice(FALLBACK_TAUNTS[move])
 
 
 # ---------- game rules ----------
