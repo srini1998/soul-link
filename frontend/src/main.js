@@ -295,7 +295,15 @@ function renderBattle() {
   }
   wrap.appendChild(memory);
 
-  const matchOver = state.match.agentA.hp <= 0 || state.match.agentB.hp <= 0;
+  const matchOver = !!state.lastTurn?.done;
+
+  if (state.error) {
+    const err = document.createElement("p");
+    err.className = "error";
+    err.style.color = "#ff6b6b";
+    err.textContent = `Turn failed: ${state.error}`;
+    wrap.appendChild(err);
+  }
 
   if (!matchOver) {
     const nextBtn = document.createElement("button");
@@ -320,15 +328,17 @@ function renderBattle() {
     autoLabel.append(autoCheck, "Auto-play");
     wrap.appendChild(autoLabel);
   } else {
-    const winnerKey = state.match.agentA.hp <= 0 ? "agentB" : "agentA";
+    const winnerKey = state.lastTurn.winner; // null = draw (40-turn limit)
     const result = document.createElement("p");
     result.className = "status";
-    result.textContent = `${state.match[winnerKey].name} wins.`;
+    result.textContent = winnerKey ? `${state.match[winnerKey].name} wins.` : "DRAW.";
     wrap.appendChild(result);
     if (!state.wonSpoken) {
       state.wonSpoken = true;
-      const winner = getCharacter(state.match[winnerKey].id);
-      speak(winner.lines.win, winner.voiceId);
+      if (winnerKey) {
+        const winner = getCharacter(state.match[winnerKey].id);
+        speak(winner.lines.win, winner.voiceId);
+      }
     }
   }
 
@@ -352,21 +362,27 @@ async function runTurn() {
   if (state.busy) return;
   state.busy = true;
   render();
+  let spoken = Promise.resolve();
   try {
     const res = await playTurn(state.matchId);
     state.match = res.state;
     state.lastTurn = res;
+    state.error = null;
+    if (res.done) state.autoplay = false;
     const actorChar = getCharacter(state.match[res.actor].id);
-    speak(res.taunt, actorChar.voiceId); // no-op if voiceId is unset
+    spoken = speak(res.taunt, actorChar.voiceId); // resolves when the line ends (or is skipped)
   } catch (e) {
     state.error = e.message;
     state.autoplay = false;
   } finally {
     state.busy = false;
     render();
-    if (state.autoplay && state.match.agentA.hp > 0 && state.match.agentB.hp > 0) {
-      setTimeout(runTurn, 600);
-    }
+  }
+  if (state.autoplay && !state.lastTurn?.done) {
+    // Let the taunt finish before the next turn so voices aren't chopped.
+    await spoken;
+    await new Promise((r) => setTimeout(r, 400));
+    if (state.autoplay && !state.busy && !state.lastTurn?.done && state.matchId) runTurn();
   }
 }
 
