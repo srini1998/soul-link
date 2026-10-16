@@ -2,6 +2,24 @@ import "./style.css";
 import { CHARACTERS, getCharacter } from "./characters.js";
 import { startMatch, playTurn } from "./api.js";
 import { speak } from "./voice.js";
+import { CHARACTER_ART } from "./art/index.js";
+
+// Renders a character's portrait SVG into `el`, cropped to fill it (preserveAspectRatio set
+// programmatically since the source SVGs only declare width="100%"). Falls back to the old
+// color-swatch gradient if art for an id is ever missing.
+function paintPortrait(el, c) {
+  const markup = CHARACTER_ART[c.id];
+  if (!markup) {
+    el.style.background = `linear-gradient(135deg, ${c.colors.primary}, ${c.colors.dark})`;
+    return;
+  }
+  el.innerHTML = markup;
+  const svg = el.querySelector("svg");
+  svg.setAttribute("width", "100%");
+  svg.setAttribute("height", "100%");
+  svg.setAttribute("preserveAspectRatio", "xMidYMid slice");
+  svg.style.display = "block";
+}
 
 const app = document.getElementById("app");
 
@@ -15,6 +33,7 @@ const state = {
   busy: false,
   autoplay: false,
   error: null,
+  wonSpoken: false,
 };
 
 function render() {
@@ -42,7 +61,10 @@ function renderSelect() {
     if (state.pickA === c.id || state.pickB === c.id) card.classList.add("selected");
     const swatch = document.createElement("div");
     swatch.className = "swatch";
-    swatch.style.background = `linear-gradient(135deg, ${c.colors.primary}, ${c.colors.dark})`;
+    const portrait = document.createElement("div");
+    portrait.className = "portrait";
+    paintPortrait(portrait, c);
+    swatch.appendChild(portrait);
     const name = document.createElement("div");
     name.className = "name";
     name.textContent = c.name;
@@ -82,8 +104,10 @@ function renderSelect() {
       state.matchId = res.matchId;
       state.match = res.state;
       state.lastTurn = null;
+      state.wonSpoken = false;
       state.screen = "battle";
       render();
+      speak(a.lines.intro, a.voiceId); // no-op until a voiceId is filled in
     } catch (e) {
       state.error = e.message;
       render();
@@ -166,7 +190,10 @@ function fighterBlock(key) {
   }
   const swatch = document.createElement("div");
   swatch.className = "swatch";
-  swatch.style.background = `linear-gradient(135deg, ${c.colors.primary}, ${c.colors.dark})`;
+  const portrait = document.createElement("div");
+  portrait.className = "portrait";
+  paintPortrait(portrait, c);
+  swatch.appendChild(portrait);
   if (burst) swatch.appendChild(burst);
   const name = document.createElement("div");
   name.className = "name";
@@ -286,6 +313,11 @@ function renderBattle() {
     result.className = "status";
     result.textContent = `${state.match[winnerKey].name} wins.`;
     wrap.appendChild(result);
+    if (!state.wonSpoken) {
+      state.wonSpoken = true;
+      const winner = getCharacter(state.match[winnerKey].id);
+      speak(winner.lines.win, winner.voiceId);
+    }
   }
 
   const backBtn = document.createElement("button");
