@@ -34,7 +34,47 @@ const state = {
   autoplay: false,
   error: null,
   wonSpoken: false,
+  // client-side announcer bookkeeping (see processTurnFx); reset whenever lastTurn is null
+  fx: { seen: null, fresh: false, turns: 0, firstBlood: false, streak: { agentA: 0, agentB: 0 }, banner: null },
 };
+
+const ATTACKS = ["LIGHT_ATTACK", "HEAVY_ATTACK", "SPECIAL"];
+const MOVE_CALLOUT = {
+  LIGHT_ATTACK: "LIGHT ATTACK!",
+  HEAVY_ATTACK: "HEAVY ATTACK!",
+  SPECIAL: "SPECIAL!",
+  BLOCK: "BLOCK!",
+  DODGE: "DODGE!",
+};
+const STREAK_BANNERS = { 2: "DOUBLE HIT!", 3: "MULTI HIT!", 4: "RAMPAGE!", 5: "UNSTOPPABLE!" };
+
+// Called from renderBattle on every render; does work only once per new turn object, so the
+// "Thinking..." re-render doesn't replay callouts. Streaks count only the actor's own turns.
+function processTurnFx() {
+  const fx = state.fx;
+  const t = state.lastTurn;
+  if (!t) {
+    state.fx = { seen: null, fresh: false, turns: 0, firstBlood: false, streak: { agentA: 0, agentB: 0 }, banner: null };
+    return;
+  }
+  if (fx.seen === t) {
+    fx.fresh = false;
+    return;
+  }
+  fx.seen = t;
+  fx.fresh = true;
+  fx.turns += 1;
+  fx.banner = null;
+  const hit = t.damageDealt > 0;
+  fx.streak[t.actor] = hit ? fx.streak[t.actor] + 1 : 0;
+  if (fx.turns === 1 && t.memoryUsed && t.memoryUsed.length) fx.banner = "GRUDGE MATCH!";
+  if (hit && fx.streak[t.actor] >= 2) fx.banner = STREAK_BANNERS[fx.streak[t.actor]] || "GODLIKE!";
+  if (t.move === "SPECIAL" && t.damageDealt >= 28) fx.banner = "MASSIVE!";
+  if (hit && !fx.firstBlood) {
+    fx.firstBlood = true;
+    fx.banner = "FIRST BLOOD!";
+  }
+}
 
 function render() {
   app.innerHTML = "";
@@ -219,10 +259,25 @@ function fighterBlock(key) {
   paintPortrait(portrait, c);
   div.appendChild(portrait);
   if (burst) div.appendChild(burst);
+  const t = state.lastTurn;
+  if (t && state.fx.fresh) {
+    if (t.actor === key) {
+      const callout = document.createElement("div");
+      callout.className = `callout callout-${key}`;
+      callout.textContent = MOVE_CALLOUT[t.move] || `${t.move.replace(/_/g, " ")}!`;
+      div.appendChild(callout);
+    } else if (ATTACKS.includes(t.move)) {
+      const dmg = document.createElement("div");
+      dmg.className = "dmg-float" + (t.damageDealt > 0 ? "" : " miss");
+      dmg.textContent = t.damageDealt > 0 ? `-${t.damageDealt}` : "MISS";
+      div.appendChild(dmg);
+    }
+  }
   return div;
 }
 
 function renderBattle() {
+  processTurnFx();
   const wrap = document.createElement("div");
 
   const h1 = document.createElement("h1");
@@ -253,6 +308,12 @@ function renderBattle() {
   // Stage follows agentA, same convention classic fighters use for whoever's "home" slot.
   arena.appendChild(stageBackground(getCharacter(state.match.agentA.id).stage));
   arena.append(fighterBlock("agentA"), fighterBlock("agentB"));
+  if (state.fx.fresh && state.fx.banner) {
+    const banner = document.createElement("div");
+    banner.className = "announcer";
+    banner.textContent = state.fx.banner;
+    arena.appendChild(banner);
+  }
   wrap.appendChild(arena);
 
   const taunt = document.createElement("div");
@@ -267,7 +328,8 @@ function renderBattle() {
     who.className = "who";
     who.textContent = `${state.match[state.lastTurn.actor].name}:`;
     taunt.appendChild(who);
-    taunt.append(`"${state.lastTurn.taunt}" (${state.lastTurn.move})`);
+    who.textContent = `${state.match[state.lastTurn.actor].name.toUpperCase()}:`;
+    taunt.append(`"${state.lastTurn.taunt}"`);
   } else {
     taunt.textContent = "The fight is about to begin.";
   }
@@ -276,7 +338,7 @@ function renderBattle() {
   const memory = document.createElement("div");
   memory.className = "memory";
   const h3 = document.createElement("h3");
-  h3.textContent = "Memory";
+  h3.textContent = "GRUDGES";
   memory.appendChild(h3);
   const facts = state.lastTurn?.memoryUsed || [];
   if (facts.length === 0) {
