@@ -1,7 +1,8 @@
 import "./style.css";
 import { CHARACTERS, getCharacter } from "./characters.js";
 import { startMatch, playTurn } from "./api.js";
-import { speak } from "./voice.js";
+import { speak, announce } from "./voice.js";
+import { startMusic, stopMusic, isMusicOn } from "./music.js";
 import { CHARACTER_ART } from "./art/index.js";
 
 // Renders a character's portrait SVG into `el`, cropped to fill it (preserveAspectRatio set
@@ -22,6 +23,13 @@ function paintPortrait(el, c, fit = "slice") {
 }
 
 const app = document.getElementById("app");
+
+const musicBtn = document.createElement("button");
+musicBtn.className = "music-toggle";
+const syncMusicBtn = () => (musicBtn.textContent = isMusicOn() ? "♪ MUSIC: ON" : "♪ MUSIC: OFF");
+musicBtn.onclick = () => { isMusicOn() ? stopMusic() : startMusic(); syncMusicBtn(); };
+syncMusicBtn();
+document.body.appendChild(musicBtn);
 
 const state = {
   screen: "select", // "select" | "battle"
@@ -149,6 +157,8 @@ function renderSelect() {
       state.wonSpoken = false;
       state.screen = "battle";
       render();
+      startMusic(); // Start click is a user gesture, so the browser lets audio begin
+      syncMusicBtn();
       speak(a.lines.intro, a.voiceId); // no-op until a voiceId is filled in
     } catch (e) {
       state.error = e.message;
@@ -441,6 +451,8 @@ async function runTurn() {
   } finally {
     state.busy = false;
     render();
+    // render() just computed this turn's announcer banner; voice it after the taunt
+    if (state.fx?.fresh && state.fx.banner) spoken = announce(state.fx.banner);
   }
   if (state.autoplay && !state.lastTurn?.done) {
     // Let the taunt finish before the next turn so voices aren't chopped.

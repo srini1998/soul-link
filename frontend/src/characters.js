@@ -6,7 +6,7 @@ export const CHARACTERS = [
     name: "Kaito Blaze",
     tagline: "Hot-headed fire swordsman",
     colors: { primary: "#FF6B35", dark: "#3A0F0A", accent: "#C7441B" },
-    voiceId: "SOYHLrjzK2X1ezoPC6cr", // ElevenLabs: Harry - Fierce Warrior
+    voiceId: "TX3LPaxmHKxFdv7VOQHJ", // ElevenLabs: Liam - Energetic (cocky loudmouth)
     element: "fire",
     stage: "desert",
     lines: {
@@ -20,7 +20,7 @@ export const CHARACTERS = [
     name: "Rei Shadowfang",
     tagline: "Cold, calculating shadow assassin",
     colors: { primary: "#5B8DB8", dark: "#13293D", accent: "#5DCAA5" },
-    voiceId: "XrExE9yKIg1WjnnlVkGX", // ElevenLabs: Matilda - Knowledgable, Professional
+    voiceId: "pFZP5JQG7iQjIQuC4Bku", // ElevenLabs: Lily - Velvety Actress (smug sniper)
     element: "shadow",
     stage: "blizzard",
     lines: {
@@ -48,7 +48,7 @@ export const CHARACTERS = [
     name: "Dorn Ironhide",
     tagline: "Silent, towering brawler",
     colors: { primary: "#8A6F52", dark: "#2B2118", accent: "#C9A36B" },
-    voiceId: "nPczCjzI2devNBz1zQrb", // ElevenLabs: Brian - Deep, Resonant and Comforting
+    voiceId: "pNInz6obpgDQGcFmaJgB", // ElevenLabs: Adam - Dominant, Firm (heavy brute)
     element: "earth",
     stage: "village",
     lines: {
@@ -76,7 +76,7 @@ export const CHARACTERS = [
     name: "Varek Stonewill",
     tagline: "Composed, disciplined mentor",
     colors: { primary: "#7A8B6F", dark: "#2E3A28", accent: "#B7C9A8" },
-    voiceId: "pqHfZKP75CvOlQylNhV4", // ElevenLabs: Bill - Wise, Mature, Balanced
+    voiceId: "onwK4e9ZLuTAKqWW03F9", // ElevenLabs: Daniel - Steady Broadcaster (cold sensei)
     element: "discipline",
     stage: "dojo",
     lines: {

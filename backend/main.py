@@ -285,7 +285,7 @@ DECISION_SCHEMA = {
     "type": "object",
     "properties": {
         "move": {"type": "string", "enum": MOVES},
-        "taunt": {"type": "string", "description": "One punchy in-character trash-talk line, max 12 words."},
+        "taunt": {"type": "string", "description": "One annoyingly funny trash-talk line, 2-8 words."},
     },
     "required": ["move", "taunt"],
     "additionalProperties": False,
@@ -298,16 +298,14 @@ RULES = ("Moves: LIGHT_ATTACK (8-12 dmg, reliable), HEAVY_ATTACK (16-24 dmg), "
 
 
 TAUNT_STYLE = (
-    "Taunts are arena-shooter trash talk, like an Unreal Tournament announcer with a grudge: short, "
-    "punchy, cocky, needling. Max 12 words, usually fewer. Gamer jabs are welcome: respawn, lag, bots, "
-    "scoreboard, highlight reel, 'get off my map', 'next!'. Use the receipts: past results from memory, "
-    "current HP, what just happened last turn. Only quote numbers and results that appear in this "
-    "prompt; never invent past stats. Winning -> rub it in. Losing -> deny, excuse, or promise "
-    "payback. Your hit whiffed -> cover with swagger. Punctuation is for the voice actor: '!' for hype, "
-    "'...' for a smug pause. Never reuse or lightly reword one of your earlier taunts. Keep it PG-13: "
-    "no profanity, slurs, or real-world insults; mock the fighting, not the person. "
-    "Flavor examples (don't copy verbatim): 'Respawn and try again.' 'Did you lag, or are you just like "
-    "that?' 'Hold still, I'm trying to get a highlight.' 'Nice try... really. It was adorable.' 'Sit down.'"
+    "Taunts are Unreal Tournament-style trash talk: SHORT and annoyingly funny. 2 to 8 words, never more. "
+    "Petty, smug, absurd. Think 'Respawn and try again.', 'Was that supposed to hurt?', 'Next!', "
+    "'Get off my map.', 'I've seen bots aim better.', 'Sit down.' Be funny: ridiculous comparisons "
+    "(grandma, toaster, tutorial bot, dial-up), fake politeness, mock lag, mock their last whiff. "
+    "Use receipts sparingly: one number or past result max, and only ones that appear in this prompt; "
+    "never invent stats. Punctuation is for the voice actor: '!' for hype, '...' for a smug pause. "
+    "Never reuse or reword one of your earlier taunts. PG-13: no profanity or slurs; mock the "
+    "fighting, not the person. Don't copy the examples verbatim."
 )
 
 
@@ -335,7 +333,7 @@ def build_prompt(m: dict, actor_key: str, memory: list[str]) -> tuple[str, str]:
             f"Memories of past fights vs {opp['name']}: {memory or 'none, first time meeting'}.\n"
             f"Your last move: {m['last_move'][actor_key] or 'none'}.\n"
             f"Your taunts so far this match (do NOT repeat or rephrase): {my_taunts or 'none yet'}.\n"
-            f"Choose your move and one fresh taunt. Use a memory as ammo if you have one.")
+            f"Choose your move and one fresh taunt (max 8 words).")
     return system, user
 
 
