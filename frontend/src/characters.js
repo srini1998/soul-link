@@ -7,7 +7,7 @@ export const CHARACTERS = [
     tagline: "Hot-headed fire swordsman",
     colors: { primary: "#FF6B35", dark: "#3A0F0A", accent: "#C7441B" },
     gender: "male", // the voiceId below is a male voice
-    voiceId: "X2RFLXFeweiyJjbdE3iz", // ElevenLabs Voice Design (custom: brash raspy fire swordsman)
+    voiceId: "5akCgQNpbNhGou9n9Tjb", // ElevenLabs Voice Design (custom: gravelly male baritone, ~107 Hz)
     element: "fire",
     stage: "desert",
     lines: {
@@ -82,7 +82,7 @@ export const CHARACTERS = [
     tagline: "Composed, disciplined mentor",
     colors: { primary: "#7A8B6F", dark: "#2E3A28", accent: "#B7C9A8" },
     gender: "male", // the voiceId below is a male voice
-    voiceId: "6ewkTCLI0AbwmloLWYpD", // ElevenLabs Voice Design (custom: calm, ethereal elven master)
+    voiceId: "PNT1xDzDvvCmsSesAyOE", // ElevenLabs Voice Design (custom: deep old male elf, ~82 Hz)
     element: "discipline",
     stage: "dojo",
     lines: {
