@@ -155,6 +155,7 @@ function renderSelect() {
       state.match = res.state;
       state.lastTurn = null;
       state.wonSpoken = false;
+      state.koShown = false;
       state.screen = "battle";
       render();
       startMusic(); // Start click is a user gesture, so the browser lets audio begin
@@ -246,6 +247,13 @@ function fighterBlock(key) {
   const c = getCharacter(agent.id);
   const div = document.createElement("div");
   div.className = `fighter fighter-${key}`;
+  const end = state.lastTurn?.done ? state.lastTurn : null;
+  if (end && end.winner && end.winner !== key) {
+    // K.O.: the loser topples to the ground. Animate once, then stay lying down on later re-renders.
+    div.classList.add("ko");
+    if (state.koShown) div.classList.add("ko-static");
+    state.koShown = true;
+  }
   if (state.lastTurn && state.lastTurn.actor !== key && state.lastTurn.damageDealt > 0) {
     div.classList.add("hit");
     div.style.setProperty("--shake", state.lastTurn.move === "HEAVY_ATTACK" ? "10px" : "6px");
@@ -320,6 +328,22 @@ function renderBattle() {
   // Stage follows agentA, same convention classic fighters use for whoever's "home" slot.
   arena.appendChild(stageBackground(getCharacter(state.match.agentA.id).stage));
   arena.append(fighterBlock("agentA"), fighterBlock("agentB"));
+  if (state.lastTurn?.done) {
+    const w = state.lastTurn.winner;
+    const v = document.createElement("div");
+    v.className = "victory";
+    const title = document.createElement("div");
+    title.className = "victory-title";
+    title.textContent = w ? `${state.match[w].name} wins` : "Draw";
+    v.appendChild(title);
+    if (w && state.match[w].hp >= state.match[w].maxHp) {
+      const sub = document.createElement("div");
+      sub.className = "victory-sub";
+      sub.textContent = "Flawless victory";
+      v.appendChild(sub);
+    }
+    arena.appendChild(v);
+  }
   if (state.fx.fresh && state.fx.banner) {
     const banner = document.createElement("div");
     banner.className = "announcer";
@@ -410,8 +434,12 @@ function renderBattle() {
     if (!state.wonSpoken) {
       state.wonSpoken = true;
       if (winnerKey) {
-        const winner = getCharacter(state.match[winnerKey].id);
+        const w = state.match[winnerKey];
+        const winner = getCharacter(w.id);
+        announce(`${w.name} wins!${w.hp >= w.maxHp ? " Flawless victory!" : ""}`);
         speak(winner.lines.win, winner.voiceId);
+      } else {
+        announce("Draw! Nobody wins!");
       }
     }
   }
