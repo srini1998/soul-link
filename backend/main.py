@@ -9,7 +9,9 @@ import asyncio
 import json
 import os
 import random
+import re
 import uuid
+from collections import Counter
 
 import httpx
 from fastapi import FastAPI, HTTPException
@@ -134,15 +136,69 @@ def _surreal_headers():
 
 
 def _flatten_memory(data) -> list[str]:
-    """Agent Memory /query returns {"hits": [{"text", "source", "score", ...}]}.
-    Skip bare entity hits (just a name like "Rei Shadowfang") and keep real memories."""
+    """Agent Memory /query returns {"hits": [{"text", "source", "score", "occurredAt", ...}]}.
+    Skip bare entity hits (just a name like "Rei Shadowfang") and keep real memories, newest first."""
     hits = data.get("hits", []) if isinstance(data, dict) else []
-    out = []
+    seen, found = set(), []
     for h in hits:
         if isinstance(h, dict) and h.get("source") != "entity" and isinstance(h.get("text"), str):
-            if h["text"] not in out:
-                out.append(h["text"])
-    return out
+            if h["text"] not in seen:
+                seen.add(h["text"])
+                found.append((str(h.get("occurredAt") or ""), h["text"]))
+    # ISO timestamps sort as strings; undated hits go last, ties keep relevance order
+    found.sort(key=lambda t: t[0], reverse=True)
+    return [text for _, text in found]
+
+
+_MATCH_RE = re.compile(r"Match [^:]+: (.+?) \((\w+)\) vs (.+?) \((\w+)\)\. Winner: (.+?)\. "
+                       r"Final HP (.+?) (\d+), (.+?) (\d+)\.\s*(.*)", re.S)
+
+
+def _clip(text: str, limit: int = 120) -> str:
+    text = " ".join(text.split())
+    if len(text) <= limit:
+        return text
+    head = text[:limit]
+    end = head.rfind(". ")
+    if end >= limit // 2:  # prefer ending on a whole sentence
+        return head[:end + 1]
+    return head[:limit - 1].rsplit(" ", 1)[0].rstrip(" ,.;:") + "…"
+
+
+def _favorite_move(rest: str, name: str) -> "str | None":
+    mv = re.search(re.escape(name) + r" moves: ([A-Z_, ]+)", rest)
+    moves = [x.strip() for x in mv.group(1).split(",") if x.strip()] if mv else []
+    return Counter(moves).most_common(1)[0][0] if moves else None
+
+
+def shorten_memory(text: str) -> str:
+    """One stored match summary -> one projector-friendly line (~120 chars). Never raises."""
+    try:
+        if not isinstance(text, str):
+            return ""
+        g = _MATCH_RE.match(text.strip())
+        if not g:
+            return _clip(text)
+        name_a, _, name_b, _, winner, hp_name_a, hp_a, hp_name_b, hp_b, rest = g.groups()
+        hp = {hp_name_a: int(hp_a), hp_name_b: int(hp_b)}
+        first = lambda n: n.split()[0]
+        if winner in (name_a, name_b):
+            loser = name_b if winner == name_a else name_a
+            fate = "KO'd" if hp.get(loser, 0) <= 0 else f"at {hp[loser]} HP"
+            line = f"{first(winner)} won, {first(loser)} {fate} ({first(winner)} at {hp.get(winner, '?')} HP)."
+        else:
+            line = f"Draw: {first(name_a)} {hp.get(name_a, '?')} HP, {first(name_b)} {hp.get(name_b, '?')} HP."
+        fav_a, fav_b = _favorite_move(rest, name_a), _favorite_move(rest, name_b)
+        if fav_a and fav_b:
+            line += f" {first(name_a)} leaned on {fav_a}; {first(name_b)} on {fav_b}."
+        elif rest and " moves: " not in rest:
+            line += " " + rest  # hand-written fact: keep its prose, clipped below
+        return _clip(line)
+    except Exception:
+        try:
+            return _clip(str(text))
+        except Exception:
+            return ""
 
 
 async def memory_query(m: dict, actor_key: str) -> list[str]:
@@ -326,11 +382,14 @@ def health():
 
 
 async def get_memory(m: dict, actor_key: str) -> list[str]:
+    """The 3 newest memories as one short line each; this is both the LLM's memory and memoryUsed."""
     try:
-        return await asyncio.wait_for(asyncio.shield(m["memory"][actor_key]), timeout=15)
+        facts = await asyncio.wait_for(asyncio.shield(m["memory"][actor_key]), timeout=15)
     except Exception as e:
         print(f"[surreal] memory unavailable: {e!r}")
         return []
+    lines = [shorten_memory(f) for f in facts[:3]]
+    return [l for l in lines if l]
 
 
 @app.post("/match/start")
