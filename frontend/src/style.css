@@ -48,9 +48,7 @@ button.ghost {
   padding: 20px;
   border-radius: 14px;
   position: relative;
-  background:
-    radial-gradient(ellipse at 50% 120%, rgba(255, 107, 53, 0.12), transparent 60%),
-    linear-gradient(180deg, #19161f 0%, #121014 70%, #0b0a0c 100%);
+  background: #0b0a0c;
   border: 1px solid #262229;
   box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.5);
   overflow: hidden;
@@ -62,18 +60,313 @@ button.ghost {
   height: 30%;
   background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.4));
   pointer-events: none;
+  z-index: 1;
 }
 .vs {
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 1px;
-  color: #655c54;
+  color: #eee;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  position: relative;
+  z-index: 2;
 }
-.fighter { background: #16161c; border-radius: 10px; padding: 16px; position: relative; transition: transform 0.2s ease; }
-.fighter.hit { animation: shake 0.3s; }
-.fighter.attacking { animation: lunge 0.5s ease; }
-.fighter .swatch { width: 100%; height: 100px; border-radius: 8px; margin-bottom: 10px; }
+
+/* ---------- stage backdrops: layered CSS "scenery", not a flat gradient wash ---------- */
+.stage-bg { position: absolute; inset: 0; overflow: hidden; z-index: 0; }
+.stage-sky { position: absolute; inset: 0; }
+.stage-orb {
+  position: absolute;
+  width: var(--orb-size, 46px); height: var(--orb-size, 46px);
+  left: var(--orb-x, 70%); top: var(--orb-y, 14%);
+  border-radius: 50%;
+  background: var(--orb-color, #ffd27a);
+  box-shadow: 0 0 40px 10px var(--orb-glow, rgba(255, 210, 122, 0.45));
+}
+.stage-ground {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 36%;
+  background: var(--ground-color, #1b1620);
+  clip-path: var(--ground-clip, polygon(0 100%, 0 40%, 100% 40%, 100% 100%));
+}
+.stage-landmark {
+  position: absolute; bottom: 4%;
+  width: 24px; height: 24px;
+  box-shadow: var(--shape);
+  opacity: 0.95;
+}
+/* positioned in the margins outside the fighter cards (not under the VS gap or the cards
+   themselves) so they read as scenery, not noise behind the glass card/HP text */
+.stage-landmark.land-1 { left: 1.5%; transform: scale(1.5); }
+.stage-landmark.land-2 { left: 48%; transform: scale(1); bottom: 3%; }
+.stage-landmark.land-3 { left: 94%; transform: scale(1.3); }
+.stage-landmark.land-4 { left: 46%; transform: scale(0.7); bottom: 8%; opacity: 0.6; }
+
+.stage-particles { position: absolute; inset: 0; pointer-events: none; }
+.mote {
+  position: absolute;
+  width: 3px; height: 3px;
+  background: var(--mote-color, #fff);
+  border-radius: 50%;
+  opacity: 0;
+  top: -10px;
+  animation: var(--mote-anim, mote-fall) var(--mote-dur, 6s) linear infinite;
+}
+.mote:nth-child(1) { left: 6%; animation-delay: 0s; }
+.mote:nth-child(2) { left: 16%; animation-delay: 1.1s; }
+.mote:nth-child(3) { left: 27%; animation-delay: 2.3s; }
+.mote:nth-child(4) { left: 38%; animation-delay: 0.6s; }
+.mote:nth-child(5) { left: 49%; animation-delay: 3.1s; }
+.mote:nth-child(6) { left: 59%; animation-delay: 1.8s; }
+.mote:nth-child(7) { left: 69%; animation-delay: 2.9s; }
+.mote:nth-child(8) { left: 79%; animation-delay: 0.3s; }
+.mote:nth-child(9) { left: 89%; animation-delay: 4.2s; }
+.mote:nth-child(10) { left: 94%; animation-delay: 1.4s; }
+
+/* Desert — Kaito: sun-baked dunes, cactus silhouettes, heat-shimmer sky */
+.stage-bg[data-stage="desert"] {
+  --orb-color: #ffcf6b; --orb-glow: rgba(255, 207, 107, 0.5); --orb-x: 74%; --orb-y: 12%;
+  --ground-color: #4a2d14;
+  --ground-clip: polygon(0 100%, 0 55%, 15% 45%, 35% 58%, 55% 42%, 75% 54%, 100% 46%, 100% 100%);
+  --shape:
+    0 0 #2d4a1f, 4px 0 #2d4a1f, 0 -4px #2d4a1f, 4px -4px #2d4a1f, 0 -8px #2d4a1f,
+    -4px -4px #2d4a1f, -4px -8px #2d4a1f, 0 -12px #2d4a1f, 8px -4px #2d4a1f, 8px -8px #2d4a1f;
+}
+.stage-bg[data-stage="desert"] .stage-sky {
+  background: linear-gradient(180deg, #6a3a1e 0%, #c9793a 35%, #ffb35c 65%, #ffd98a 100%);
+}
+.stage-bg[data-stage="desert"] { --mote-color: #ffdca0; --mote-anim: mote-drift; --mote-dur: 8s; }
+
+/* Blizzard — Rei: icy peaks, pale moon, falling snow */
+.stage-bg[data-stage="blizzard"] {
+  --orb-color: #eaf6ff; --orb-glow: rgba(234, 246, 255, 0.5); --orb-x: 20%; --orb-y: 10%;
+  --ground-color: #1c2b3a;
+  --ground-clip: polygon(0 100%, 0 60%, 20% 30%, 38% 58%, 55% 20%, 72% 56%, 90% 35%, 100% 58%, 100% 100%);
+  --shape:
+    0 0 #cfe6f5, 4px 0 #cfe6f5, -4px 4px #cfe6f5, 8px 4px #cfe6f5, -8px 8px #cfe6f5,
+    12px 8px #cfe6f5, 0 4px #9fc3da, 4px 4px #9fc3da;
+}
+.stage-bg[data-stage="blizzard"] .stage-sky {
+  background: linear-gradient(180deg, #0e1a2b 0%, #1f3a56 40%, #3d6485 70%, #7ea3bd 100%);
+}
+.stage-bg[data-stage="blizzard"] { --mote-color: #ffffff; --mote-anim: mote-fall; --mote-dur: 5s; }
+
+/* Tropical — Rin: turquoise coast, palm fronds, sea breeze */
+.stage-bg[data-stage="tropical"] {
+  --orb-color: #fff2c4; --orb-glow: rgba(255, 242, 196, 0.55); --orb-x: 78%; --orb-y: 16%;
+  --ground-color: #0d4a52;
+  --ground-clip: polygon(0 100%, 0 62%, 25% 58%, 50% 64%, 75% 56%, 100% 62%, 100% 100%);
+  --shape:
+    0 0 #0f5c42, 0 -4px #0f5c42, 0 -8px #0f5c42, -6px -10px #1b7a56, 6px -10px #1b7a56,
+    -10px -8px #1b7a56, 10px -8px #1b7a56, 0 -12px #1b7a56;
+}
+.stage-bg[data-stage="tropical"] .stage-sky {
+  background: linear-gradient(180deg, #063b4a 0%, #0f7a8c 45%, #3fc1c9 75%, #a8ecdb 100%);
+}
+.stage-bg[data-stage="tropical"] { --mote-color: #d8fff4; --mote-anim: mote-drift; --mote-dur: 9s; }
+
+/* Village — Dorn: earthy rooftops at dusk, distant hills */
+.stage-bg[data-stage="village"] {
+  --orb-color: #ffb37a; --orb-glow: rgba(255, 179, 122, 0.45); --orb-x: 30%; --orb-y: 18%;
+  --ground-color: #2b2118;
+  --ground-clip: polygon(0 100%, 0 50%, 20% 50%, 20% 38%, 40% 38%, 40% 50%, 60% 50%, 60% 36%, 80% 36%, 80% 50%, 100% 50%, 100% 100%);
+  --shape:
+    0 0 #4a3a28, 4px 0 #4a3a28, 8px 0 #4a3a28, -4px -4px #6b5438, 4px -4px #6b5438,
+    8px -4px #6b5438, 12px -4px #6b5438, 2px -8px #6b5438;
+}
+.stage-bg[data-stage="village"] .stage-sky {
+  background: linear-gradient(180deg, #2a1f2e 0%, #5c3a3f 40%, #9a5f4e 70%, #d99a6c 100%);
+}
+.stage-bg[data-stage="village"] { --mote-color: #e8c9a0; --mote-anim: mote-drift; --mote-dur: 10s; }
+
+/* Shrine — Suzu: moonlit torii gate, drifting fireflies */
+.stage-bg[data-stage="shrine"] {
+  --orb-color: #e8d9ff; --orb-glow: rgba(232, 217, 255, 0.5); --orb-x: 16%; --orb-y: 12%;
+  --ground-color: #241b30;
+  --ground-clip: polygon(0 100%, 0 58%, 100% 58%, 100% 100%);
+  --shape:
+    0 0 #b968c7, 0 -4px #b968c7, 0 -8px #b968c7, 0 -12px #b968c7, 16px 0 #b968c7,
+    16px -4px #b968c7, 16px -8px #b968c7, 16px -12px #b968c7, -4px -12px #e6a8f0, 20px -12px #e6a8f0;
+}
+.stage-bg[data-stage="shrine"] .stage-sky {
+  background: linear-gradient(180deg, #170f22 0%, #2e1f45 45%, #4a2f66 75%, #6e4a8a 100%);
+}
+.stage-bg[data-stage="shrine"] { --mote-color: #f0c9ff; --mote-anim: mote-float; --mote-dur: 7s; }
+
+/* Dojo — Varek: misty pine mountains at dawn */
+.stage-bg[data-stage="dojo"] {
+  --orb-color: #fdf4e3; --orb-glow: rgba(253, 244, 227, 0.4); --orb-x: 60%; --orb-y: 14%;
+  --ground-color: #27311f;
+  --ground-clip: polygon(0 100%, 0 48%, 18% 30%, 32% 50%, 48% 24%, 64% 50%, 80% 32%, 100% 48%, 100% 100%);
+  --shape:
+    0 0 #3c4a2e, -4px 4px #3c4a2e, 4px 4px #3c4a2e, -8px 8px #3c4a2e, 8px 8px #3c4a2e,
+    -12px 12px #3c4a2e, 12px 12px #3c4a2e, 0 8px #526840;
+}
+.stage-bg[data-stage="dojo"] .stage-sky {
+  background: linear-gradient(180deg, #202c22 0%, #3c5240 40%, #74967e 75%, #c9dcc4 100%);
+}
+.stage-bg[data-stage="dojo"] { --mote-color: #eef5e8; --mote-anim: mote-float; --mote-dur: 11s; }
+
+@keyframes mote-fall {
+  0% { opacity: 0; transform: translateY(0) translateX(0); }
+  10% { opacity: 0.8; }
+  100% { opacity: 0; transform: translateY(260px) translateX(14px); }
+}
+@keyframes mote-drift {
+  0% { opacity: 0; transform: translate(0, 0); }
+  15% { opacity: 0.7; }
+  100% { opacity: 0; transform: translate(60px, -30px); }
+}
+@keyframes mote-float {
+  0%, 100% { opacity: 0; transform: translate(0, 0); }
+  20% { opacity: 0.9; }
+  50% { transform: translate(10px, -40px); }
+  80% { opacity: 0.4; }
+}
+
+.fighter {
+  background: rgba(10, 9, 11, 0.55);
+  backdrop-filter: blur(2px);
+  border-radius: 10px;
+  padding: 16px;
+  position: relative;
+  z-index: 2;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: transform 0.2s ease;
+}
+.fighter.hit { animation: shake calc(0.25s + var(--shake, 6px) * 0.01) ease; }
+.fighter .swatch {
+  width: 100%; height: 100px; border-radius: 8px; margin-bottom: 10px;
+  position: relative; overflow: visible;
+  animation: idle-bob 2.4s ease-in-out infinite;
+}
 .fighter .name { font-weight: 600; }
+
+/* ---------- move choreography: each move type gets its own feel ---------- */
+.fighter.move-light_attack { animation: jab 0.35s ease; }
+.fighter.move-heavy_attack { animation: haymaker 0.6s ease; }
+.fighter.move-special { animation: special-surge 0.7s ease; }
+.fighter.move-block { animation: brace 0.4s ease; }
+.fighter.move-dodge { animation: sidestep 0.45s ease; }
+
+@keyframes jab {
+  0% { transform: translateX(0); }
+  45% { transform: translateX(calc(var(--dir, 1) * 10px)); }
+  100% { transform: translateX(0); }
+}
+@keyframes haymaker {
+  0% { transform: translateX(0) rotate(0); }
+  25% { transform: translateX(calc(var(--dir, 1) * -6px)) rotate(calc(var(--dir, 1) * -2deg)); }
+  55% { transform: translateX(calc(var(--dir, 1) * 20px)) scale(1.06) rotate(calc(var(--dir, 1) * 3deg)); }
+  100% { transform: translateX(0) rotate(0); }
+}
+@keyframes special-surge {
+  0% { transform: scale(1); filter: brightness(1); }
+  35% { transform: scale(0.94); filter: brightness(1.1); }
+  60% { transform: translateX(calc(var(--dir, 1) * 16px)) scale(1.12); filter: brightness(1.6); }
+  100% { transform: translateX(0) scale(1); filter: brightness(1); }
+}
+@keyframes brace {
+  0% { transform: translateX(0) scale(1); }
+  40% { transform: translateX(calc(var(--dir, 1) * -6px)) scale(0.97); }
+  100% { transform: translateX(0) scale(1); }
+}
+@keyframes sidestep {
+  0% { transform: translateX(0); }
+  35% { transform: translateX(calc(var(--dir, 1) * -10px)); filter: blur(1px); opacity: 0.8; }
+  70% { transform: translateX(calc(var(--dir, 1) * 4px)); filter: blur(0); opacity: 1; }
+  100% { transform: translateX(0); }
+}
+@keyframes idle-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* ---------- elemental bursts: unique particle flavor per character ---------- */
+.burst { position: absolute; inset: 0; pointer-events: none; }
+.burst.burst-big { transform: scale(1.3); }
+
+/* fire (Kaito) — flickering flame tongues */
+.burst.elem-fire::before, .burst.elem-fire::after {
+  content: ""; position: absolute; left: 50%; bottom: 10%;
+  width: 14px; height: 22px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: var(--elem-color, #ff6b35);
+  box-shadow: 0 0 14px 2px var(--elem-color, #ff6b35);
+  animation: flame-flicker 0.5s ease-out;
+}
+.burst.elem-fire::after { left: 65%; width: 9px; height: 15px; background: var(--elem-accent, #ffb085); animation-delay: 0.05s; }
+@keyframes flame-flicker {
+  0% { transform: translate(-50%, 0) scaleY(0.4); opacity: 0.9; }
+  50% { transform: translate(-50%, -18px) scaleY(1.1) skewX(-6deg); opacity: 1; }
+  100% { transform: translate(-50%, -34px) scaleY(0.3); opacity: 0; }
+}
+
+/* shadow (Rei) — dark smoke wisps */
+.burst.elem-shadow::before, .burst.elem-shadow::after {
+  content: ""; position: absolute; left: 40%; bottom: 20%;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: radial-gradient(circle, var(--elem-color, #5b8db8), transparent 70%);
+  filter: blur(1px);
+  animation: smoke-wisp 0.6s ease-out;
+}
+.burst.elem-shadow::after { left: 60%; animation-delay: 0.08s; width: 14px; height: 14px; }
+@keyframes smoke-wisp {
+  0% { transform: translateY(0) scale(0.6); opacity: 0.8; }
+  100% { transform: translateY(-30px) scale(1.6); opacity: 0; }
+}
+
+/* wind (Rin) — fast horizontal speed streaks */
+.burst.elem-wind::before, .burst.elem-wind::after {
+  content: ""; position: absolute; left: 10%; top: 50%;
+  width: 60%; height: 3px;
+  background: linear-gradient(90deg, transparent, var(--elem-color, #7fdbff), transparent);
+  animation: wind-streak 0.4s ease-out;
+}
+.burst.elem-wind::after { top: 65%; animation-delay: 0.06s; }
+@keyframes wind-streak {
+  0% { transform: translateX(calc(var(--dir, 1) * -40px)); opacity: 0; }
+  40% { opacity: 1; }
+  100% { transform: translateX(calc(var(--dir, 1) * 40px)); opacity: 0; }
+}
+
+/* earth (Dorn) — flying rock chunks */
+.burst.elem-earth::before, .burst.elem-earth::after {
+  content: ""; position: absolute; left: 50%; bottom: 15%;
+  width: 8px; height: 8px;
+  background: var(--elem-color, #8a6f52);
+  animation: rock-chunk 0.55s ease-in;
+}
+.burst.elem-earth::after { left: 60%; background: var(--elem-accent, #c9a36b); animation-delay: 0.06s; width: 6px; height: 6px; }
+@keyframes rock-chunk {
+  0% { transform: translate(0, 0) rotate(0); opacity: 1; }
+  100% { transform: translate(calc(var(--dir, 1) * 26px), 18px) rotate(140deg); opacity: 0; }
+}
+
+/* trickster (Suzu) — twinkling sparkle stars */
+.burst.elem-trickster::before, .burst.elem-trickster::after {
+  content: "✦"; position: absolute; left: 45%; top: 30%;
+  font-size: 14px; color: var(--elem-color, #b968c7);
+  text-shadow: 0 0 8px var(--elem-color, #b968c7);
+  animation: sparkle-twinkle 0.6s ease-out;
+}
+.burst.elem-trickster::after { left: 62%; top: 50%; font-size: 10px; animation-delay: 0.12s; color: var(--elem-accent, #e6a8f0); }
+@keyframes sparkle-twinkle {
+  0% { transform: scale(0) rotate(0); opacity: 0; }
+  50% { transform: scale(1.3) rotate(90deg); opacity: 1; }
+  100% { transform: scale(0.4) rotate(180deg); opacity: 0; }
+}
+
+/* discipline (Varek) — a single calm expanding ring */
+.burst.elem-discipline::before {
+  content: ""; position: absolute; left: 50%; top: 50%;
+  width: 20px; height: 20px; margin: -10px 0 0 -10px;
+  border: 2px solid var(--elem-color, #7a8b6f);
+  border-radius: 50%;
+  animation: ring-pulse 0.55s ease-out;
+}
+@keyframes ring-pulse {
+  0% { transform: scale(0.3); opacity: 1; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
 .hpbar-row { display: flex; justify-content: space-between; align-items: baseline; margin-top: 8px; }
 .hpbar-row .hp-value { font-size: 11px; color: #a89c8a; font-variant-numeric: tabular-nums; }
 .hpbar { height: 10px; border-radius: 5px; background: #2a2a30; overflow: hidden; }
@@ -101,14 +394,8 @@ button.ghost {
 
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-6px); }
-  75% { transform: translateX(6px); }
-}
-
-@keyframes lunge {
-  0% { transform: translateX(0); }
-  40% { transform: translateX(var(--lunge, 10px)) scale(1.03); }
-  100% { transform: translateX(0); }
+  25% { transform: translateX(calc(var(--shake, 6px) * -1)); }
+  75% { transform: translateX(var(--shake, 6px)); }
 }
 
 @keyframes flash-strong {

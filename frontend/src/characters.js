@@ -7,6 +7,8 @@ export const CHARACTERS = [
     tagline: "Hot-headed fire swordsman",
     colors: { primary: "#FF6B35", dark: "#3A0F0A", accent: "#C7441B" },
     voiceId: "", // fill in from ElevenLabs Voice Library
+    element: "fire",
+    stage: "desert",
   },
   {
     id: "soul_b",
@@ -14,6 +16,8 @@ export const CHARACTERS = [
     tagline: "Cold, calculating shadow assassin",
     colors: { primary: "#5B8DB8", dark: "#13293D", accent: "#5DCAA5" },
     voiceId: "",
+    element: "shadow",
+    stage: "blizzard",
   },
   {
     id: "soul_c",
@@ -21,6 +25,8 @@ export const CHARACTERS = [
     tagline: "Playful speed-type ninja",
     colors: { primary: "#7FDBFF", dark: "#1B4F5C", accent: "#C7F3FF" },
     voiceId: "",
+    element: "wind",
+    stage: "tropical",
   },
   {
     id: "soul_d",
@@ -28,6 +34,8 @@ export const CHARACTERS = [
     tagline: "Silent, towering brawler",
     colors: { primary: "#8A6F52", dark: "#2B2118", accent: "#C9A36B" },
     voiceId: "",
+    element: "earth",
+    stage: "village",
   },
   {
     id: "soul_e",
@@ -35,6 +43,8 @@ export const CHARACTERS = [
     tagline: "Mischievous kitsune trickster",
     colors: { primary: "#B968C7", dark: "#3D1F45", accent: "#E6A8F0" },
     voiceId: "",
+    element: "trickster",
+    stage: "shrine",
   },
   {
     id: "soul_f",
@@ -42,6 +52,8 @@ export const CHARACTERS = [
     tagline: "Composed, disciplined mentor",
     colors: { primary: "#7A8B6F", dark: "#2E3A28", accent: "#B7C9A8" },
     voiceId: "",
+    element: "discipline",
+    stage: "dojo",
   },
 ];
 

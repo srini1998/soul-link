@@ -102,6 +102,43 @@ function renderSelect() {
   return wrap;
 }
 
+const STAGE_LANDMARKS = {
+  desert: 3,
+  blizzard: 3,
+  tropical: 3,
+  village: 4,
+  shrine: 3,
+  dojo: 3,
+};
+
+function stageBackground(theme) {
+  const stage = document.createElement("div");
+  stage.className = "stage-bg";
+  stage.dataset.stage = theme;
+  const sky = document.createElement("div");
+  sky.className = "stage-sky";
+  const orb = document.createElement("div");
+  orb.className = "stage-orb";
+  const ground = document.createElement("div");
+  ground.className = "stage-ground";
+  stage.append(sky, orb, ground);
+  const count = STAGE_LANDMARKS[theme] || 3;
+  for (let i = 0; i < count; i++) {
+    const land = document.createElement("div");
+    land.className = `stage-landmark land-${i + 1}`;
+    stage.appendChild(land);
+  }
+  const particles = document.createElement("div");
+  particles.className = "stage-particles";
+  for (let i = 0; i < 10; i++) {
+    const mote = document.createElement("span");
+    mote.className = "mote";
+    particles.appendChild(mote);
+  }
+  stage.appendChild(particles);
+  return stage;
+}
+
 function fighterBlock(key) {
   const agent = state.match[key];
   const c = getCharacter(agent.id);
@@ -109,14 +146,28 @@ function fighterBlock(key) {
   div.className = "fighter";
   if (state.lastTurn && state.lastTurn.actor !== key && state.lastTurn.damageDealt > 0) {
     div.classList.add("hit");
+    div.style.setProperty("--shake", state.lastTurn.move === "HEAVY_ATTACK" ? "10px" : "6px");
   }
+  let burst = null;
   if (state.lastTurn && state.lastTurn.actor === key) {
-    div.classList.add("attacking");
-    div.style.setProperty("--lunge", key === "agentA" ? "14px" : "-14px");
+    // one class per move type so each gets its own choreography (see style.css) — applied to
+    // the whole fighter block so it works on whatever art is in .swatch, placeholder or real.
+    const move = state.lastTurn.move;
+    div.classList.add(`move-${move.toLowerCase()}`);
+    div.style.setProperty("--dir", key === "agentA" ? "1" : "-1");
+    if (move === "LIGHT_ATTACK" || move === "HEAVY_ATTACK" || move === "SPECIAL") {
+      // element-flavored particle effect, unique per character (fire flicker, shadow smoke,
+      // wind streak, earth chunks, trickster sparkle, discipline ring) — color from c.colors.
+      burst = document.createElement("div");
+      burst.className = `burst elem-${c.element}${move === "SPECIAL" ? " burst-big" : ""}`;
+      burst.style.setProperty("--elem-color", c.colors.primary);
+      burst.style.setProperty("--elem-accent", c.colors.accent);
+    }
   }
   const swatch = document.createElement("div");
   swatch.className = "swatch";
   swatch.style.background = `linear-gradient(135deg, ${c.colors.primary}, ${c.colors.dark})`;
+  if (burst) swatch.appendChild(burst);
   const name = document.createElement("div");
   name.className = "name";
   name.textContent = agent.name;
@@ -157,6 +208,8 @@ function renderBattle() {
 
   const arena = document.createElement("div");
   arena.className = "arena";
+  // Stage follows agentA, same convention classic fighters use for whoever's "home" slot.
+  arena.appendChild(stageBackground(getCharacter(state.match.agentA.id).stage));
   const vs = document.createElement("div");
   vs.className = "vs";
   vs.textContent = "VS";
