@@ -1,5 +1,5 @@
-<svg width="100%" viewBox="0 0 170 440" role="img"><title>Full-body retro pixel-sprite for Varek Stonewill</title><desc>Chunky pixel-art full-body standing sprite of a composed, disciplined martial-arts mentor, head to toe: a tidy topknot, calm closed-eye expression, symmetric body, a geometric chest emblem, a centered sash, and simple flat boots.</desc>
-<rect x="0" y="0" width="170" height="440" rx="8" fill="#161D13"/>
+<svg width="100%" viewBox="0 0 170 385" role="img"><title>Full-body retro pixel-sprite for Varek Stonewill</title><desc>Chunky pixel-art full-body standing sprite of a composed, disciplined martial-arts mentor, head to toe: a tidy topknot, calm closed-eye expression, symmetric body, a geometric chest emblem, a centered sash, and simple flat boots.</desc>
+<rect x="0" y="0" width="170" height="385" rx="8" fill="#161D13"/>
 <g transform="translate(-5,5)" stroke="#0E1410" stroke-width="1.5">
 <rect x="90" y="10" width="20" height="18" fill="#2E3A28"/>
 <rect x="90" y="24" width="20" height="5" fill="#B7C9A8"/>
@@ -34,6 +34,4 @@
 <rect x="30" y="358" width="60" height="8" fill="#7A8B6F"/>
 <rect x="90" y="358" width="60" height="8" fill="#7A8B6F"/>
 </g>
-<text x="85" y="415" text-anchor="middle" font-size="14" font-weight="500" fill="#E6EEE0">Varek Stonewill</text>
-<text x="85" y="432" text-anchor="middle" font-size="12" fill="#AABF9D">Composed, disciplined mentor</text>
 </svg>

@@ -1,5 +1,5 @@
-<svg width="100%" viewBox="0 0 232 440" role="img"><title>Full-body retro pixel-sprite for Rin Tempest</title><desc>Chunky pixel-art full-body standing sprite of a playful speed-type ninja, head to toe: low-profile swept hair under a cyan headband with a flowing ribbon tail, a side ponytail, fitted suit, trousers, boots, and a short one-piece blade.</desc>
-<rect x="0" y="0" width="232" height="440" rx="8" fill="#0B2630"/>
+<svg width="100%" viewBox="0 0 232 390" role="img"><title>Full-body retro pixel-sprite for Rin Tempest</title><desc>Chunky pixel-art full-body standing sprite of a playful speed-type ninja, head to toe: low-profile swept hair under a cyan headband with a flowing ribbon tail, a side ponytail, fitted suit, trousers, boots, and a short one-piece blade.</desc>
+<rect x="0" y="0" width="232" height="390" rx="8" fill="#0B2630"/>
 <g transform="translate(15,-5)" stroke="#0B2E36" stroke-width="1.5">
 <rect x="158" y="95" width="14" height="50" fill="#1B4F5C"/>
 <rect x="160" y="140" width="10" height="35" fill="#1B4F5C"/>
@@ -45,6 +45,4 @@
 <circle cx="151" cy="204" r="5" fill="#7FDBFF"/>
 </g>
 </g>
-<text x="116" y="415" text-anchor="middle" font-size="14" font-weight="500" fill="#E3FAFF">Rin Tempest</text>
-<text x="116" y="432" text-anchor="middle" font-size="12" fill="#9FDCE8">Playful speed-type ninja</text>
 </svg>
