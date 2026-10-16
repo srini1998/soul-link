@@ -36,6 +36,26 @@ SOULS = {
         "personality": "Cold, calculating shadow assassin. Patient, dodges and counters, studies "
                        "opponents' habits and exploits them. Speaks in short, cutting lines.",
     },
+    "soul_c": {
+        "name": "Rin Tempest",
+        "personality": "Playful speed-type ninja. Mocking, overconfident, prefers quick hit-and-run "
+                       "pokes over big risks. Never stays still, never admits a hit actually hurt.",
+    },
+    "soul_d": {
+        "name": "Dorn Ironhide",
+        "personality": "Silent, towering brawler. Few words, overwhelming force. Doesn't taunt so "
+                       "much as issue short, blunt warnings. Respects strength, nothing else.",
+    },
+    "soul_e": {
+        "name": "Suzu Nightfox",
+        "personality": "Mischievous kitsune-spirit trickster. Teasing, unpredictable, treats every "
+                       "fight like a game she's already won. Loves messing with an opponent's expectations.",
+    },
+    "soul_f": {
+        "name": "Varek Stonewill",
+        "personality": "Composed, disciplined martial-arts mentor type. Speaks rarely and precisely, "
+                       "values honor over showmanship, punishes mistakes rather than rushing in.",
+    },
 }
 
 # ---------- config ----------
